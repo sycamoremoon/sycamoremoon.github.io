@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://github.com/sycamoremoon/2023/12/04/LCD1602-driver/custom_data.png">
 <meta property="og:image" content="https://github.com/sycamoremoon/2023/12/04/LCD1602-driver/custom_10bit.png">
 <meta property="article:published_time" content="2023-12-04T12:44:21.000Z">
-<meta property="article:modified_time" content="2023-12-04T13:34:38.775Z">
+<meta property="article:modified_time" content="2023-12-04T13:36:56.757Z">
 <meta property="article:author" content="Damon">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://github.com/sycamoremoon/2023/12/04/LCD1602-driver/HD44780U_block_diagram.png">
@@ -387,7 +387,7 @@
 <p><strong>读指令</strong>的示例如下</p>
 <p><em><strong>值得注意的是读指令不需要检查忙信号</strong></em>，因为读指令比较特殊，在BF为1的时候也能执行，否则怎么知道BF到底为多少？哈哈哈。另一方面来说Check busy函数本身就调用了读指令函数，这会导致递归调用而且没有终止条件，这个错误是致命的。</p>
 </blockquote>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c">uchar <span class="hljs-title function_">Read_Busyflag_and_AD</span><span class="hljs-params">()</span><br>&#123;<br>    uchar BF_AD_result;<span class="hljs-comment">//读指令不需要checkbusy</span><br>    LCD_RS=<span class="hljs-number">0</span>;<br> 	LCD_RW=<span class="hljs-number">1</span>;<br>    BUS=<span class="hljs-number">0xff</span>;<br>    _nop_();<span class="hljs-comment">//Address set-up time</span><br>    LCD_EN=<span class="hljs-number">1</span>;<br>    _nop_();<span class="hljs-comment">//Data delay time</span><br>    BF_AD_result = BUS;<br>    LCD_EN=<span class="hljs-number">0</span>;<br> 	<span class="hljs-keyword">return</span> BF_AD_result;<br>&#125;`<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c">uchar <span class="hljs-title function_">Read_Busyflag_and_AD</span><span class="hljs-params">()</span><br>&#123;<br>    uchar BF_AD_result;<span class="hljs-comment">//读指令不需要checkbusy</span><br>    LCD_RS=<span class="hljs-number">0</span>;<br> 	LCD_RW=<span class="hljs-number">1</span>;<br>    BUS=<span class="hljs-number">0xff</span>;<br>    _nop_();<span class="hljs-comment">//Address set-up time</span><br>    LCD_EN=<span class="hljs-number">1</span>;<br>    _nop_();<span class="hljs-comment">//Data delay time</span><br>    BF_AD_result = BUS;<br>    LCD_EN=<span class="hljs-number">0</span>;<br> 	<span class="hljs-keyword">return</span> BF_AD_result;<br>&#125;<br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>读指令返回的结果有两部分，一部分是BF的状态，一部分是AC的当前值，也就是执行完上一条指令之后的值。</p>
 </blockquote>
