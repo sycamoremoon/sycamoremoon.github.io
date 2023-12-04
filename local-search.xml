@@ -33,20 +33,7 @@
     <link href="/sycamoremoon/2023/12/03/hello-world/"/>
     <url>/sycamoremoon/2023/12/03/hello-world/</url>
     
-    <content type="html"><![CDATA[<p>Welcome to my blog ! This is my very first post. I want to share you something  I like.</p><img src="/2023/12/03/hello-world/Hello_World.jpg" class="" title="HELLO WORLD">]]></content>
-    
-    
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>test_page</title>
-    <link href="/sycamoremoon/2023/12/03/test-page/"/>
-    <url>/sycamoremoon/2023/12/03/test-page/</url>
-    
-    <content type="html"><![CDATA[<p>this is a blog for test</p><img src="/2023/12/03/test-page/test.png" class="" title="picture_1">]]></content>
+    <content type="html"><![CDATA[<p>Welcome to my blog ! This is my very first post. I want to share you something  I like.</p><img src="/sycamoremoon/2023/12/03/hello-world/Hello_World.jpg" class="" title="HELLO WORLD">]]></content>
     
     
     
