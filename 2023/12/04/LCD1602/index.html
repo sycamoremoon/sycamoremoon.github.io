@@ -7,8 +7,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/sycamoremoon/sycamoremoon.github.io/img/browser.png">
-  <link rel="icon" href="/sycamoremoon/sycamoremoon.github.io/img/browser.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/browser.png">
+  <link rel="icon" href="/img/browser.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
@@ -19,24 +19,24 @@
     <meta name="description" content="手把手教你写LCD1602驱动代码写在前面：本文是本人某种意义上写的第一篇blog，如有错误请留言指正。具体内容以官方手册内容为准[1]。  首先我们要知道LCD1602屏幕驱动的背后也是有一块类似显卡的芯片HD44780U在作为驱动，当然这块上世纪的芯片当然不能和最新的4090相比，它的显存只有可怜的80bytes，但是这对于很多应用场景来说已经够用了，这也是这块芯片能够经久不衰的原因。此处附上">
 <meta property="og:type" content="article">
 <meta property="og:title" content="LCD1602-driver">
-<meta property="og:url" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/index.html">
+<meta property="og:url" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/index.html">
 <meta property="og:site_name" content="Recording Blog">
 <meta property="og:description" content="手把手教你写LCD1602驱动代码写在前面：本文是本人某种意义上写的第一篇blog，如有错误请留言指正。具体内容以官方手册内容为准[1]。  首先我们要知道LCD1602屏幕驱动的背后也是有一块类似显卡的芯片HD44780U在作为驱动，当然这块上世纪的芯片当然不能和最新的4090相比，它的显存只有可怜的80bytes，但是这对于很多应用场景来说已经够用了，这也是这块芯片能够经久不衰的原因。此处附上">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/HD44780U_block_diagram.png">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/characters.png">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/instruction.png">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/write.png">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/read.png">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/function_set.png">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/custom_data.png">
-<meta property="og:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/custom_10bit.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/HD44780U_block_diagram.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/characters.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/instruction.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/write.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/read.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/function_set.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/custom_data.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/custom_10bit.png">
 <meta property="article:published_time" content="2023-12-04T02:18:59.000Z">
 <meta property="article:modified_time" content="2024-01-17T02:43:07.410Z">
 <meta property="article:author" content="Damon">
 <meta property="article:tag" content="单片机驱动开发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/HD44780U_block_diagram.png">
+<meta name="twitter:image" content="https://sycamoremoon.github.io/2023/12/04/LCD1602/HD44780U_block_diagram.png">
   
   
   
@@ -64,12 +64,12 @@
 <link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
 
 
-<link  rel="stylesheet" href="/sycamoremoon/sycamoremoon.github.io/css/main.css" />
+<link  rel="stylesheet" href="/css/main.css" />
 
 
-  <link id="highlight-css" rel="stylesheet" href="/sycamoremoon/sycamoremoon.github.io/css/highlight.css" />
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
   
-    <link id="highlight-css-dark" rel="stylesheet" href="/sycamoremoon/sycamoremoon.github.io/css/highlight-dark.css" />
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
   
 
 
@@ -78,15 +78,15 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"github.com","root":"/sycamoremoon/sycamoremoon.github.io/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","app_key":"YCK4Vdn4MiWd3L7wAUjUIj4k","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/sycamoremoon/sycamoremoon.github.io/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"sycamoremoon.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","app_key":"YCK4Vdn4MiWd3L7wAUjUIj4k","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
       Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
     }
   </script>
-  <script  src="/sycamoremoon/sycamoremoon.github.io/js/utils.js" ></script>
-  <script  src="/sycamoremoon/sycamoremoon.github.io/js/color-schema.js" ></script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
   
 
   
@@ -132,7 +132,7 @@
 <div class="header-inner" style="height: 70vh;">
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand" href="/sycamoremoon/sycamoremoon.github.io/">
+    <a class="navbar-brand" href="/">
       <strong>Damon</strong>
     </a>
 
@@ -151,7 +151,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/sycamoremoon/sycamoremoon.github.io/" target="_self">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
                 <span>首页</span>
               </a>
@@ -163,7 +163,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/sycamoremoon/sycamoremoon.github.io/archives/" target="_self">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
                 <span>归档</span>
               </a>
@@ -175,7 +175,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/sycamoremoon/sycamoremoon.github.io/categories/" target="_self">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
                 <span>分类</span>
               </a>
@@ -187,7 +187,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/sycamoremoon/sycamoremoon.github.io/tags/" target="_self">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
                 <span>标签</span>
               </a>
@@ -199,7 +199,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/sycamoremoon/sycamoremoon.github.io/about/" target="_self">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
                 <span>关于</span>
               </a>
@@ -229,7 +229,7 @@
   
 
 <div id="banner" class="banner" parallax=true
-     style="background: url('/sycamoremoon/sycamoremoon.github.io/img/backgroud2.jpg') no-repeat center center; background-size: cover;">
+     style="background: url('/img/backgroud2.jpg') no-repeat center center; background-size: cover;">
   <div class="full-bg-img">
     <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
       <div class="banner-text text-center fade-in-up">
@@ -314,7 +314,7 @@
 <p>首先我们要知道LCD1602屏幕驱动的背后也是有一块类似显卡的芯片<strong>HD44780U</strong>在作为驱动，当然这块上世纪的芯片当然不能和最新的4090相比，它的显存只有可怜的80bytes，但是这对于很多应用场景来说已经够用了，这也是这块芯片能够经久不衰的原因。此处附上<a target="_blank" rel="noopener" href="https://www.alldatasheet.com/datasheet-pdf/pdf/63663/HITACHI/HD44780U.html">DataSheet下载网址</a>，现在就让我们正式开始这块芯片的学习吧。</p>
 <p><em><strong>HD44780U</strong></em>以下简称44780</p>
 <hr>
-<h2 id="44780的内部资源"><a href="#44780的内部资源" class="headerlink" title="44780的内部资源"></a>44780的内部资源</h2><p><img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/HD44780U_block_diagram.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="HD44780U内部结构"></p>
+<h2 id="44780的内部资源"><a href="#44780的内部资源" class="headerlink" title="44780的内部资源"></a>44780的内部资源</h2><p><img src="/2023/12/04/LCD1602/HD44780U_block_diagram.png" srcset="/img/loading.gif" lazyload alt="HD44780U内部结构"></p>
 <ol>
 <li><p>44780中最重要的就是它的寄存器和存储器了，寄存器分别是指令寄存器IR和数据寄存器DR，存储器又分为DDRAM，CGROM和CGRAM了，下面一一为大家解释他们的含义。</p>
 <ul>
@@ -328,7 +328,7 @@
 </li>
 <li><p>用户可以更改的时CGRAM，CGRAM实际上是有16个5 x 8 bit 的物理存储单元，和CGROM合计256个单元。但是我们只能使用其中的8个物理存储单元因为对于CGRAM的地址来说低字节的第三位是无效位，详细分析请看<em>“在CGRAM中自定义数据”</em>。</p>
 <p>此处附上欧版CGRAM和CGROM的字库</p>
-<p><img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/characters.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="character"></p>
+<p><img src="/2023/12/04/LCD1602/characters.png" srcset="/img/loading.gif" lazyload alt="character"></p>
 </li>
 </ul>
 </li>
@@ -341,12 +341,12 @@
 </ol>
 <hr>
 <h2 id="44780的常规指令操作"><a href="#44780的常规指令操作" class="headerlink" title="44780的常规指令操作"></a>44780的常规指令操作</h2><p>Let’s take a quick look of these instructions,读者有可能和我刚开始一样云里雾里，但是没关系我会解释的。</p>
-<p><img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/instruction.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="instructions"></p>
+<p><img src="/2023/12/04/LCD1602/instruction.png" srcset="/img/loading.gif" lazyload alt="instructions"></p>
 <p>这些指令可以被分成4类，分别是写命令，写数据，读命令，读数据</p>
 <ol>
 <li>我们先来看看写命令和写数据，他们都是属于往44780中写的范畴，一个是往IR中写一个是往DR中写，要完整无误地进行操作，首先还是得看看44780的写操作时序</li>
 </ol>
-<p>​		<img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/write.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="Write"></p>
+<p>​		<img src="/2023/12/04/LCD1602/write.png" srcset="/img/loading.gif" lazyload alt="Write"></p>
 <p>​	由图中可以看出，在改变RS、RW状态后，需要一个短暂的t<sub>AS</sub>来建立地址，手册中给的是40ns，但是12MHz单片机最短延迟时间是1us，所以就按照1us来处理。为了方便，<strong>因为所有的操作延迟时间都低于1us，所以就按照1us来延迟</strong>，这样我们得到了第一个延迟时间点，接下来给出使能信号enable，图中显示enable分别有一个rise time和 fall time，以及高电平保持时间不小于PW<sub>EH</sub>,为了保险起见此处再次延时1us，然后将数据送入总线BUS，此时enable还是保持有效状态，数据也有一个最短建立时间t<sub>DSW</sub>,所以再次延时1us，注意此时的延时1us并不是代表1us后数据就已经能够发挥作用，而是代表这个时候才能被44780所读取，所以在1us后再改变的话，44780读到的数据是改变之后的那一个。真正能把数据锁存住 的信号是enable的下降沿，当enable的下降沿到来时这个指令周期内BUS上的数据如何变化都和44780无关了。刚学的时候，很容易混淆<strong>操作延迟时间</strong>和<strong>指令延时时间</strong>。操作延迟时间很短，大多在ns级别，而指令延迟时间却在us级别，需要在所有的引脚电平变化完成后再额外指令操作延时，这一点在大多数教程中是没有明确指出的。</p>
 <blockquote>
 <p><strong>写指令</strong>代码示例如下</p>
@@ -356,7 +356,7 @@
 <ol start="2">
 <li>接下来就是读命令和读指令操作了，依旧，我们先来看看读操作的时序图</li>
 </ol>
-<p><img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/read.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="Read"></p>
+<p><img src="/2023/12/04/LCD1602/read.png" srcset="/img/loading.gif" lazyload alt="Read"></p>
 <p>由于读操作确实不太常用，而且编程思想和写操作类似，所以在次就简单描述。在配置完RS和RW状态后，仍然需要一段延时来建立地址，之后就是使能信号的置一，与写操作不同的是：此处使能信号之后的延时并不是可选的了，而是必须的。因为需要等待t<sub>DDR</sub>的Data delay time之后才能读取到有效的数据，所以此处<strong>必须</strong>延时1us。由于延时了1us，所以PW<sub>EH</sub>也顺利保持，之后只需要直接置enable为0即可。</p>
 <blockquote>
 <p><strong>读数据</strong>的示例如下</p>
@@ -383,20 +383,20 @@
 <ol>
 <li>44780在上电之后需要初始化，而初始化所需要执行的指令除了设置光标，清屏等个性化操作之外，有一条十分重要的指令，在instructions图中有说到，那就是Function set指令，该指令必须放在所有指令之前执行，并且执行一次后不能修改。我们先来看看这条指令的详细说明</li>
 </ol>
-<p><img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/function_set.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="function set"></p>
+<p><img src="/2023/12/04/LCD1602/function_set.png" srcset="/img/loading.gif" lazyload alt="function set"></p>
 <p>该指令DL选择数据位长度，可以为4位或者8位，一般都是8位，除非IO口不够或者MCU是4位的。</p>
 <p>N位选择屏幕显示的模式：可以为一行显示和两行显示，正常来说都是两行。</p>
 <p>F位选择显示在屏幕上的字体格式，有5 x 8 bit和5 x 10 bit，选择好后这个44780芯片的工作就按照选择的模式进行了</p>
 <ol start="2">
 <li>我们之前说到，CGRAM只有8个编码的位置能够写自定义数据，那么如何找到这8个位置呢？仍然以5 x 8 bit为例，5 x 10 bit类似。</li>
 </ol>
-<p><img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/custom_data.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="custom data"></p>
+<p><img src="/2023/12/04/LCD1602/custom_data.png" srcset="/img/loading.gif" lazyload alt="custom data"></p>
 <p>​		我们想要自定义数据，本质上就是要在CGRAM中写入数据对应的信息，而CGRAM根据characters图片可知是在地址编码的前16位(00000000-00001111)，但是根据上图可知第3位为无效位<strong>‘*’</strong>，所以实际上只有8个逻辑地址能够让用户自己写入数据，在写入之前，需要先设定想写入的位置。比如1号(00000001)位置，那么就需要将AC的地址设置为CGRAM，然后往对应的CGRAM地址写入8位的数据，但其中仅低5位有效。每一个逻辑地址对应的8个CGRAM地址都需要写入一个8位的数据，所以总共写8次，对应到这个情况就是往(001000-001111)每个位置都写一次。数据为1对应的像素亮，为0对应的像素灭。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// store the chars into the CGRAM  </span><br>Set_CGRAM_Address(<span class="hljs-number">0x40</span>);<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;<span class="hljs-number">8</span>; i++) Write_Data(cc1[i]);<br></code></pre></td></tr></table></figure>
 
 <p>由于第三位无效，所以在引用0号位置的时候，可以往DDRAM中写入0x00或者0x80，都会显示同一个字符。</p>
 <p>5 x 10 bit 的自定义数据写入和8 bit类似，读者可以根据下图自行写入</p>
-<p><img src="/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/custom_10bit.png" srcset="/sycamoremoon/sycamoremoon.github.io/img/loading.gif" lazyload alt="10bit custom"></p>
+<p><img src="/2023/12/04/LCD1602/custom_10bit.png" srcset="/img/loading.gif" lazyload alt="10bit custom"></p>
 <p>虽然这个模式不常用，但是读者如果在写入时要注意characters code 的无效位为0，3位，characters pattern的后5个字节也无关。</p>
 <hr>
 <h2 id="使用时的注意事项"><a href="#使用时的注意事项" class="headerlink" title="使用时的注意事项"></a>使用时的注意事项</h2><ul>
@@ -405,7 +405,7 @@
 <hr>
 <p><em><strong>写在最后</strong></em>：感谢能读到这里，希望没有浪费您宝贵的时间，如果觉得还不错，不要吝啬手中的赞呦~。</p>
 <blockquote>
-<p>LCD1602的驱动代码放在了<a href="https://github.com/sycamoremoon">sycamoremoon’s github</a>,需要的同学可以自取。</p>
+<p>LCD1602的驱动代码放在了<a target="_blank" rel="noopener" href="https://github.com/sycamoremoon">sycamoremoon’s github</a>,需要的同学可以自取。</p>
 <p>之后还会有其他的内容上传，希望我的小小努力能够给大家带来帮助</p>
 <p> 这是<a href="sycamoremoon.online">我的网站</a>，内容会随着时间逐渐丰富的..</p>
 </blockquote>
@@ -428,7 +428,7 @@
     
       <span class="category-chain">
         
-  <a href="/sycamoremoon/sycamoremoon.github.io/categories/%E7%A1%AC%E4%BB%B6%E5%BC%80%E5%8F%91/" class="category-chain-item">硬件开发</a>
+  <a href="/categories/%E7%A1%AC%E4%BB%B6%E5%BC%80%E5%8F%91/" class="category-chain-item">硬件开发</a>
   
   
 
@@ -443,7 +443,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/sycamoremoon/sycamoremoon.github.io/tags/%E5%8D%95%E7%89%87%E6%9C%BA%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" class="print-no-link">#单片机驱动开发</a>
+        <a href="/tags/%E5%8D%95%E7%89%87%E6%9C%BA%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" class="print-no-link">#单片机驱动开发</a>
       
     </div>
   
@@ -456,7 +456,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>LCD1602-driver</div>
-      <div>https://github.com/sycamoremoon/sycamoremoon.github.io/2023/12/04/LCD1602/</div>
+      <div>https://sycamoremoon.github.io/2023/12/04/LCD1602/</div>
     </div>
     <div class="license-meta">
       
@@ -504,7 +504,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/sycamoremoon/sycamoremoon.github.io/2023/12/03/Hello-world/" title="Hello_world">
+                      <a href="/2023/12/03/Hello-world/" title="Hello_world">
                         <span class="hidden-mobile">Hello_world</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -690,8 +690,8 @@
 
 <script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
 <script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
-<script  src="/sycamoremoon/sycamoremoon.github.io/js/events.js" ></script>
-<script  src="/sycamoremoon/sycamoremoon.github.io/js/plugins.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
 
 
   <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
@@ -713,7 +713,7 @@
 
 
   
-    <script  src="/sycamoremoon/sycamoremoon.github.io/js/img-lazyload.js" ></script>
+    <script  src="/js/img-lazyload.js" ></script>
   
 
 
@@ -812,9 +812,9 @@
 
   <script>Fluid.plugins.imageCaption();</script>
 
-  <script defer src="/sycamoremoon/sycamoremoon.github.io/js/leancloud.js" ></script>
+  <script defer src="/js/leancloud.js" ></script>
 
-  <script  src="/sycamoremoon/sycamoremoon.github.io/js/local-search.js" ></script>
+  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -822,7 +822,7 @@
 
 <!-- 主题的启动项，将它保持在最底部 -->
 <!-- the boot of the theme, keep it at the bottom -->
-<script  src="/sycamoremoon/sycamoremoon.github.io/js/boot.js" ></script>
+<script  src="/js/boot.js" ></script>
 
 
   
