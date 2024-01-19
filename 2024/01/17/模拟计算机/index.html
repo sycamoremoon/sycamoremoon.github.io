@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
+<html lang="zh-CN" data-default-color-scheme=dark>
 
 
 
@@ -16,17 +16,38 @@
   <meta name="author" content="Damon">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Damon&#39;s Blog">
+    <meta name="description" content="关于2023全国大学生电子设计大赛综合测评的解析首先感谢给予宝贵指导的老师和学长，没有他们的循循善诱，我可能还是停留在原地徘徊 其次，关于写这次博客的动机是在仿真电路和焊接实物的过程中本人遇到了一些问题，想通过博客的形式记录下来供自己和大家参考。顺便弥补一下网络上关于这个题目资源相对较少的遗憾。  首先是对题目的解读这里推荐BiliBili上中量大求是电子协会的视频，链接在此,由于该视频已经讲得很">
 <meta property="og:type" content="article">
 <meta property="og:title" content="模拟计算机">
 <meta property="og:url" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/index.html">
 <meta property="og:site_name" content="Recording Blog">
-<meta property="og:description" content="Damon&#39;s Blog">
+<meta property="og:description" content="关于2023全国大学生电子设计大赛综合测评的解析首先感谢给予宝贵指导的老师和学长，没有他们的循循善诱，我可能还是停留在原地徘徊 其次，关于写这次博客的动机是在仿真电路和焊接实物的过程中本人遇到了一些问题，想通过博客的形式记录下来供自己和大家参考。顺便弥补一下网络上关于这个题目资源相对较少的遗憾。  首先是对题目的解读这里推荐BiliBili上中量大求是电子协会的视频，链接在此,由于该视频已经讲得很">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E9%A2%98%E7%9B%AE.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E6%8F%90%E7%A4%BA.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%8C%96%E7%AE%80%E5%90%8E%E7%9A%84%E6%A1%86%E5%9B%BE.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E6%96%B9%E6%B3%A2%E5%8F%91%E7%94%9F.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E4%B8%8D%E5%AF%B9%E7%A7%B0%E7%9A%84%E6%96%B9%E6%B3%A2.jpg">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E4%B8%89%E8%A7%92%E6%B3%A2%E5%92%8C%E6%AD%A3%E5%BC%A6%E6%B3%A2.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E6%BB%A4%E6%B3%A2%E5%99%A8.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%85%A8%E9%80%9A%E6%BB%A4%E6%B3%A2%E5%99%A8.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%8A%A0%E6%B3%95%E5%99%A8.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E7%A7%AF%E5%88%86%E5%99%A8.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E7%BB%93%E6%9E%9C%E5%8F%98%E5%8C%96.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E6%9C%80%E7%BB%88%E7%BB%93%E6%9E%9C.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E6%AD%A3%E9%9D%A2.jpg">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%8F%8D%E9%9D%A2.jpg">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%9B%BE%E7%89%871.jpg">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%9B%BE%E7%89%872.jpg">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%9B%BE%E7%89%873.jpg">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%9B%BE%E7%89%874.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%9B%BE%E7%89%875.png">
 <meta property="article:published_time" content="2024-01-17T05:01:23.000Z">
-<meta property="article:modified_time" content="2024-01-17T05:01:23.683Z">
+<meta property="article:modified_time" content="2024-01-19T01:45:13.085Z">
 <meta property="article:author" content="Damon">
+<meta property="article:tag" content="电路设计">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sycamoremoon.github.io/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E9%A2%98%E7%9B%AE.png">
   
   
   
@@ -248,7 +269,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          0 字
+          2.9k 字
         
       </span>
     
@@ -300,7 +321,120 @@
             
               <div class="markdown-body">
                 
-                
+                <h1 id="关于2023全国大学生电子设计大赛综合测评的解析"><a href="#关于2023全国大学生电子设计大赛综合测评的解析" class="headerlink" title="关于2023全国大学生电子设计大赛综合测评的解析"></a>关于2023全国大学生电子设计大赛综合测评的解析</h1><p><em>首先感谢给予<strong>宝贵指导的老师和学长</strong>，没有他们的循循善诱，我可能还是停留在原地徘徊</em></p>
+<p><em>其次，关于写这次博客的动机是在仿真电路和焊接实物的过程中本人遇到了一些问题，想通过博客的形式记录下来供自己和大家参考。顺便弥补一下网络上关于这个题目资源相对较少的遗憾。</em></p>
+<hr>
+<h2 id="首先是对题目的解读"><a href="#首先是对题目的解读" class="headerlink" title="首先是对题目的解读"></a>首先是对题目的解读</h2><p>这里推荐BiliBili上中量大求是电子协会的视频，<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Cu4y1q7U1/?spm_id_from=333.337.search-card.all.click&vd_source=afefae5b8dc3c6db1130aadd8eaadc5f">链接在此</a>,由于该视频已经讲得很详细和通俗易懂，本文直接给出结论供大家进行分析。</p>
+<p><img src="/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E9%A2%98%E7%9B%AE.png" srcset="/img/loading.gif" lazyload alt="题目"></p>
+<p>测评的时候会提供<em><strong>两片4运放的LM324和各型号的电阻电容数量不限，以及二极管1N4007数量不限。</strong></em></p>
+<p>相信很多同学和我一样在看见这个题目的时候就感觉十分懵，出题人也考虑到了这一点，所以后面还有作为附录的对题目的提示。</p>
+<p><img src="/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E6%8F%90%E7%A4%BA.png" srcset="/img/loading.gif" lazyload></p>
+<p>根据提示和相关的高等数学的知识，方程求解的框图可以化简为如下所示。具体推导过程可以在上述的<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Cu4y1q7U1/?spm_id_from=333.337.search-card.all.click&vd_source=afefae5b8dc3c6db1130aadd8eaadc5f">视频</a>中看见。</p>
+<p><img src="/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%8C%96%E7%AE%80%E5%90%8E%E7%9A%84%E6%A1%86%E5%9B%BE.png" srcset="/img/loading.gif" lazyload alt="化简后的框图"></p>
+<p>分析到这里，想要完成题目要求就可以大致分为以下几个模块</p>
+<blockquote>
+<ul>
+<li>制作波形发生器</li>
+<li>制作一个加法电路</li>
+<li>制作两个积分器</li>
+<li>按照合适的顺序、选择合适的电路参数将以上部分连接起来。</li>
+<li>考虑正弦波和三角波的相位，使得三角波和正弦波同频同相（<em>听说这个在实际考察中可有可无</em>）</li>
+</ul>
+</blockquote>
+<h2 id="开始电路仿真"><a href="#开始电路仿真" class="headerlink" title="开始电路仿真"></a>开始电路仿真</h2><p>使用Multisim作为仿真软件如下所示</p>
+<ol>
+<li><p><strong>制作波形发生器</strong></p>
+<blockquote>
+<p>波形发生电路可以分成大致两个思路：</p>
+<ul>
+<li>用文氏桥正弦波发生电路选频发生一个正弦波，之后对正弦波进行迟滞电压比较器的波形变换成方波，然后通过积分电路把方波积分成三角波。**(注：关于这个方法对相位的处理又有两种方法，分别是在正弦波变化成方波时不考虑相位，然后通过全通滤波器移相；还有一种方法是在迟滞电压比较器波形变换的同时将方波的相位移动90度，之后积分再相移90度就回来了，实现的大致思路是：确定比较的临界点分别为正弦波的最大峰值和最小峰值，可以通过调节正反馈反馈电阻的大小改变反馈因子$\beta$,但是还存在一个问题是LM324不是轨到轨的运放，所以即使反馈因子$\beta$相同反馈回来的电压也不同，解决办法就是添加一个偏置电压。<em>反馈电压低是吧，那我朝你那边偏，你即使低我也可以达到我想要的阈值电压，同理如果你反馈回来的电压高，我离你远一点，这样一互补，不就可以达到我想要的阈值电压了</em>)**</li>
+<li>还有就是用一个阻尼振荡器直接发生一个正弦波，之后对这个方波进行处理，比如滤波、积分的操作。这种方法貌似对相位的处理只有加全通滤波器了。因为我就是用的这种方法，所以会在下面进行详细说明。</li>
+</ul>
+</blockquote>
+</li>
+</ol>
+<ul>
+<li>方波发生部分如下：</li>
+</ul>
+<p><img src="/2024/01/17/%E6%A8%A1%E6%8B%9F%E8%AE%A1%E7%AE%97%E6%9C%BA/%E6%96%B9%E6%B3%A2%E5%8F%91%E7%94%9F.png" srcset="/img/loading.gif" lazyload alt="方波"></p>
+<p>如图所示方波发生部分就是由简单的阻尼振荡器变形而来，频率由C1和R3的大小决定，但是实际操作的时候还是得用滑动变阻器慢慢调。</p>
+<p>主要有两个关键的地方要注意，原因还是这个LM324不是轨到轨的运放导致。一是震荡出来的方波（图中红色的波形）不对称，含有直流分量，二是在图中的正反馈回路中区分了正电压和负电压流经的反馈通路，因为这个<strong>运放的正电压只能到3.5V左右而负电压能够达到-5V左右</strong>，如果不加以区分就会导致震荡出来的方波占空比严重失衡，仿真上不太能看出来，但是实物就非常明显，这会导致后面的波形<strong>全部失真</strong>，所以用二极管加上滑动变阻器调节占空比。最后滤去直流分量的波形如仿真图中绿色波形所示。</p>
+<img src="不对称的方波.jpg" srcset="/img/loading.gif" lazyload alt="不对称的方波" style="zoom:33%;" />
+
+<ul>
+<li><p>三角波和正弦波发生如下</p>
+<img src="三角波和正弦波.png" srcset="/img/loading.gif" lazyload alt="三角波和正弦波" style="zoom:50%;" /></li>
+</ul>
+<p>众所周知，方波经过积分之后就是三角波，而利用小学二年级学过的傅里叶变化对三角波分解可以得到三角波是由一系列的正弦波叠加而成的。基波的频率为题目要求的600rad也就是大概95.4Hz。由于只有奇数次谐波，所以我们在滤波保留基波时只能把下限截至频率选取在100~300Hz之间，考虑到留有一定裕量和元器件的误差，在计算的时候就先用的200Hz作为近似，再用现有的元器件参数去作近似，应该不会超出这个范围。</p>
+<p>在积分的时候要在电容上方并联上一个大电阻，目的是为了在非理想运放存在输入失调电压和输入失调电流的时候提供一个直流通路，以至于不会使运放输出饱和，这是一个很现实的应用。</p>
+<p>滤波电路采用了二阶的切比雪夫低通滤波器，能过获得在转折频率之外更加陡峭的滚降。如图可见该滤波器的直流增益为单位1，这是一种常用单位增益Sallen-Key的形式。</p>
+<img src="滤波器.png" srcset="/img/loading.gif" lazyload style="zoom:50%;" />
+
+<p> 经过拉氏变换后s&#x3D;j$\omega$,传递函数为<br>$$<br>A(s)&#x3D;\frac{1}{1+\omega_CC_1(R_1+R_2)s+\omega_C^2R_1R_2C_1C_2s^2}\<br>$$<br>$$<br>a_1&#x3D;\omega_CC_1(R_1+R_2)\<br>$$<br>$$<br>b_1&#x3D;\omega_C^2R_1R_2C_1C_2<br>$$<br>计算可以得到<br>$$<br>R_1&#x3D;\frac{a_1C_2-\sqrt{a_1^2C_1^2-4b_1C_1C_2}}{4\pi f_CC_1C_2} \<br>$$<br>$$<br>R_2&#x3D;\frac{a_1C_2+\sqrt{a_1^2C_1^2-4b_1C_1C_2}}{4\pi f_CC_1C_2} \<br>$$<br>$$<br>C_2\geqslant C_1\frac{4b_1}{a_1^2}<br>$$<br>根据上述公式，选取截止频率和C1、C2，注意保证C1和C2的关系要保证满足最后一个$\geqslant$，然后再根据查表得来的a1和b1可以计算出R1和R2，最后只需要将元件按照上图所示连接即可，感兴趣的同学也可以自己推导传递函数和公式。</p>
+<ul>
+<li><p>全通滤波器</p>
+<img src="全通滤波器.png" srcset="/img/loading.gif" lazyload alt="全通滤波器" style="zoom:50%;" /></li>
+</ul>
+<p>最后全通滤波器的部分比较简单，连好电路后转转滑动变阻器合适即可</p>
+<ol start="2">
+<li><strong>信号运算处理部分</strong></li>
+</ol>
+<ul>
+<li><p>加法电路</p>
+<p>根据原来的分析结果可以看出：加法器的作用是为了将输入信号与最后的结果相减，由提示信息可知外部输入信号$u_i$应该乘以一个系数$b_0&#x3D;3\times10^4$,再和最后的输出结果$u_o$乘以一个系数$a_0&#x3D;4\times10^4$相加，但是这么大的系数肯定不能直接乘，否则必然饱和。注意到上图中加法器输出后有一个 $\frac{1}{k_1k_2}$了吗？这个意思是可以将结果先衰减之后再进行运算，那么既然要衰减，为什么不直接不乘以这个系数呢:joy:？所以我的方法是将$4\times10^4$作为$k_1k_2$,放在之后的积分电路中作为因数慢慢乘进去。同时为了统一性，输入信号在进入加法器的时候应该先衰减$\frac{3}{4}$,这样之后乘以$4\times 10^4$就相当于乘了一个$3\times10^4$。</p>
+<img src="加法器.png" srcset="/img/loading.gif" lazyload alt="加法器" style="zoom:50%;" />
+
+<p>加法器下面这一堆就是题目中所述的初始条件$u_0&#x3D;1V$</p>
+</li>
+<li><p>积分电路</p>
+<p>对于一个简单的一阶有源积分器来说，它的积分系数就是$\frac{1}{RC}$,由于要积两次，所以我每个积分器给了200的系数，这一环节没有什么难度，只是要注意积分的同时要提供直流通路即并上一个大电阻。</p>
+<img src="积分器.png" srcset="/img/loading.gif" lazyload alt="积分电路" style="zoom:50%;" /></li>
+</ul>
+<p>同样,开关S2作为题中要求的初始条件$\frac{du_o(0)}{dt}&#x3D;0V&#x2F;s$ </p>
+<ol start="3">
+<li><p>仿真结果演示</p>
+<p><strong>不能保证我的结论一定正确</strong>，但是经过我仿真和实物焊接的过程中我发现这个结果的输出<strong>不是一个稳态</strong>，输出结果变化如下所示：</p>
+<img src="结果变化.png" srcset="/img/loading.gif" lazyload alt="结果变化" style="zoom:75%;" />
+
+<p>最终波形变成了一个正弦波：</p>
+ <img src="最终结果.png" srcset="/img/loading.gif" lazyload alt=" 最终结果" style="zoom:50%;" /></li>
+</ol>
+<p>可以发现，最终这个波形的输出是一个变化的过程，变化快慢随着积分电路上并联电阻的大小变化，电阻越大变化越慢，我并联的20M欧电阻都能明显看见，如果只有几百千欧姆那变化就是一瞬间的事情。那么有同学就想问了：如果断路不就相当于电阻无穷大，这样不就是稳态了？这个对于仿真来说是成立的，可以试着把电阻给断路，结果还真的就是稳态，但是实物焊接中,由于有各种各样的现实因素，结果却不是这样，请往下看。</p>
+<h2 id="开始实物焊接"><a href="#开始实物焊接" class="headerlink" title="开始实物焊接"></a>开始实物焊接</h2><p>焊接电路板是个技术活，如何能够节省空间、减少跳线、以及最小化噪声的干扰等等。显然我做得都不好，将就着看看：</p>
+ <img src="正面.jpg" srcset="/img/loading.gif" lazyload alt="正面" style="zoom:50%;" />
+
+<p>运放是双电源供电所以用了两组5V的电源，蓝色的线是引出给示波器用的线，用了两个机械按键用来提供初始条件，还有一堆滑动变阻器。</p>
+<img src="反面.jpg" srcset="/img/loading.gif" lazyload alt="反面" style="zoom:50%;" />
+
+<p>反面更是狼狈不堪，用了很多跳线，导致在焊接的时候经常出现线断掉的情况，搞得人一惊一乍的。然后就是用了一些贴片元件，比如贴片电阻、贴片电容和贴片二极管（为了方便，实际测评的时候是没有的），看具体情况焊接上去耦电容，去掉噪声干扰，一般使用0.1uF的电容接在电源到地之间。</p>
+<ul>
+<li>示波器观察波形</li>
+</ul>
+<p>方波、正弦波、三角波波形发生如下</p>
+<img src="图片1.jpg" srcset="/img/loading.gif" lazyload alt="方波" style="zoom:50%;" />
+
+<img src="图片2.jpg" srcset="/img/loading.gif" lazyload alt="方波" style="zoom:50%;" />
+
+<img src="图片3.jpg" srcset="/img/loading.gif" lazyload alt="方波" style="zoom:50%;" />
+
+<p>当输入为正弦波时，输出结果如下：</p>
+<img src="图片4.png" srcset="/img/loading.gif" lazyload alt="方波" style="zoom:50%;" />
+
+<p>由图可见当给出初始条件后，波形开始衰减，但是实物焊接出来波形衰减很快，大概在1秒钟后就衰减成了下图的正弦波</p>
+<img src="图片5.png" srcset="/img/loading.gif" lazyload alt="方波" style="zoom:50%;" />
+
+<p>我开始觉得十分奇怪，以为是电路搭错了，因为一开始我不清楚这个输出波形不是稳态（在仿真的时候积分器没有并联电阻，所以输出波形看上去没有变化），最后问了老师才知道原因所在。</p>
+<p><strong>但是无论我在积分电路的电容上并联多么大的电阻抑或是直接断路，这个输出波形衰减的速度依旧很快</strong>，至今还是没有找到原因，也不清楚电路实际连接出来到底是不是本来就衰减很快。</p>
+<p>其余的情况分别是无输入和输入为三角波的情况。结果类似，忘记拍照记录了，但是依旧是衰减很快。</p>
+<p><strong>由于网上没有太多参考案例，关于这个结果也拿不准，欢迎讨论</strong></p>
+<hr>
+<p><em><strong>写在最后</strong></em>：感谢能读到这里，希望没有浪费您宝贵的时间，如果觉得还不错，不要吝啬手中的赞呦~。</p>
+<blockquote>
+<p>综合测评题目和电路仿真放在了<a target="_blank" rel="noopener" href="https://github.com/sycamoremoon/Classpractice">sycamoremoon’s github</a>,需要的同学可以自取。</p>
+<p>之后还会有其他的内容上传，希望我的小小努力能够给大家带来帮助</p>
+<p>这是<a href="sycamoremoon.online">我的网站</a>，内容会随着时间逐渐丰富的..</p>
+</blockquote>
+
                 
               </div>
             
@@ -308,6 +442,34 @@
             <div>
               <div class="post-metas my-3">
   
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A1%AC%E4%BB%B6%E5%BC%80%E5%8F%91/" class="category-chain-item">硬件开发</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%94%B5%E8%B7%AF%E8%AE%BE%E8%AE%A1/" class="print-no-link">#电路设计</a>
+      
+    </div>
   
 </div>
 
@@ -362,12 +524,6 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/01/17/dada/" title="dada">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">dada</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
@@ -393,7 +549,7 @@
     Fluid.utils.loadComments('#valine', function() {
       Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
         var options = Object.assign(
-          {"appId":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","appKey":"YCK4Vdn4MiWd3L7wAUjUIj4k","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {"appId":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","appKey":"YCK4Vdn4MiWd3L7wAUjUIj4k","path":"window.location.pathname","placeholder":"Typing somthing..","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
           {
             el: "#valine",
             path: window.location.pathname
@@ -461,6 +617,12 @@
 
 
   
+
+
+  
+  
+
+
 
 
 
@@ -679,6 +841,49 @@
 
 
   <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
 
   <script defer src="/js/leancloud.js" ></script>
 
