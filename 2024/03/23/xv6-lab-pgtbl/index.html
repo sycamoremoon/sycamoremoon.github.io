@@ -1,0 +1,737 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/browser.png">
+  <link rel="icon" href="/img/browser.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Damon">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="central code for creating address spacewalk函数是我认为在页表中最为重要的函数之一，同时walk函数也写得十分精美。代码不长但是每一句代码都很关键，缺一不可。我将来仔细分析本人对这个函数的理解，阅读源码时同时在后面加入了自己写的注释供参考 1234567891011121314151617181920212223242526272829303132&#x2F;&#x2F; R">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-lab-pgtbl">
+<meta property="og:url" content="https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/index.html">
+<meta property="og:site_name" content="Recording Blog">
+<meta property="og:description" content="central code for creating address spacewalk函数是我认为在页表中最为重要的函数之一，同时walk函数也写得十分精美。代码不长但是每一句代码都很关键，缺一不可。我将来仔细分析本人对这个函数的理解，阅读源码时同时在后面加入了自己写的注释供参考 1234567891011121314151617181920212223242526272829303132&#x2F;&#x2F; R">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-03-23T13:48:57.000Z">
+<meta property="article:modified_time" content="2024-03-23T15:13:37.606Z">
+<meta property="article:author" content="Damon">
+<meta property="article:tag" content="Unix&#x2F;Linux">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>xv6-lab-pgtbl - Recording Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"sycamoremoon.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","app_key":"YCK4Vdn4MiWd3L7wAUjUIj4k","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Damon</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/backgroud4.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="xv6-lab-pgtbl"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-03-23 21:48" pubdate>
+          2024年3月23日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.3k 字
+        
+      </span>
+    
+
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">xv6-lab-pgtbl</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>central code for creating address space<br>walk函数是我认为在页表中最为重要的函数之一，同时walk函数也写得十分精美。代码不长但是每一句代码都很关键，缺一不可。我将来仔细分析本人对这个函数的理解，阅读源码时同时在后面加入了自己写的注释供参考</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Return the address of the PTE in page table pagetable</span><br><span class="hljs-comment">// that corresponds to virtual address va.  If alloc!=0,</span><br><span class="hljs-comment">// create any required page-table pages.</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// The risc-v Sv39 scheme has three levels of page-table</span><br><span class="hljs-comment">// pages. A page-table page contains 512 64-bit PTEs.</span><br><span class="hljs-comment">// every page-table size is a pageof allocate</span><br><span class="hljs-comment">// A 64-bit virtual address is split into five fields:</span><br><span class="hljs-comment">//   39..63 -- must be zero.</span><br><span class="hljs-comment">//   30..38 -- 9 bits of level-2 index.</span><br><span class="hljs-comment">//   21..29 -- 9 bits of level-1 index.</span><br><span class="hljs-comment">//   12..20 -- 9 bits of level-0 index.</span><br><span class="hljs-comment">//    0..11 -- 12 bits of byte offset within the page.</span><br><span class="hljs-type">pte_t</span> *<br><span class="hljs-title function_">walk</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 va, <span class="hljs-type">int</span> alloc)</span>		<span class="hljs-comment">//walk can be used to find or allocate</span><br>&#123;<br>  <span class="hljs-keyword">if</span>(va &gt;= MAXVA)<br>    panic(<span class="hljs-string">&quot;walk&quot;</span>);<br><br>  <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> level = <span class="hljs-number">2</span>; level &gt; <span class="hljs-number">0</span>; level--) &#123;<br>    <span class="hljs-type">pte_t</span> *pte = &amp;pagetable[PX(level, va)];<span class="hljs-comment">// find the exact page table entry,return address</span><br>    <span class="hljs-keyword">if</span>(*pte &amp; PTE_V) &#123;		<span class="hljs-comment">//if one PTE valid prove that the pagetable is allocated</span><br>      pagetable = (<span class="hljs-type">pagetable_t</span>)PTE2PA(*pte);<br>    &#125; <span class="hljs-keyword">else</span> &#123;	<span class="hljs-comment">//walk function also can be a allocater of pagetable </span><br>      <span class="hljs-keyword">if</span>(!alloc || (pagetable = (<span class="hljs-type">pde_t</span>*)kalloc()) == <span class="hljs-number">0</span>)<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;	<span class="hljs-comment">// whether allocate new page depend on the similarity of each layer </span><br>      <span class="hljs-built_in">memset</span>(pagetable, <span class="hljs-number">0</span>, PGSIZE);<br>      *pte = PA2PTE(pagetable) | PTE_V;	<span class="hljs-comment">//pte in last level layer. set permission of last layer to next layer. </span><br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> &amp;pagetable[PX(<span class="hljs-number">0</span>, va)];<span class="hljs-comment">// at this time the address of pagetable has been tracked to lowest layer of tree.</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>首先这个walk函数的目的是将虚拟地址通过页表一一映射到相应的物理地址上去。这会出现两种情况，一种是原来的映射关系已经存在，需要walk像走路一项走过去到达目的地。还有一种就是原来的映射关系并不存在，需要新建立一个映射关系。新的映射关系建立无疑需要动态内存分配，所以总而言之，walk函数既可以用来查找映射关系，也可以用来分配内存建立映射关系，无论哪种情况都可以获得一个最终地址。</p>
+<p>现在来分析一下代码的逻辑：RISC-V进行虚拟内存映射是通过三层页表来确定的，每层页表逐层嵌套，最终在最低层找到想要的地址。所以walk函数也是一个逐层查找的过程，由于层数已知用一个循环就能搞定。在循环开始的时候对root层pagetable进行索引(PX宏将对应层的偏移量给提取出来，作为当前层偏移量的索引)。不管是哪一层的pagetable都会有512个64bit空间，这刚好对应着最小空间分配中的一页4096字节。在使用偏移量索引的时候可以不用担心内存访问空间的问题，因为虽然pagetable是一个指针，但是它总是指向一页已经alloc好的空间。</p>
+<ol>
+<li>假设映射关系已经存在，即上一层的页表项对应的valid标志位(PTE_V)已经置位，则会把上一层的地址作为下一层pagetable的首地址并以相同的方式查找下一个。整个循环持续两次，最高层的root地址是已经由参数给出的，需要用root查询出中间层的地址，再用中间层查询出最低层的pagetable首地址。到此为止，整个循环已经结束，最终地址根据首地址加偏移量索引到相应的页表项获得。注意，最后一次的索引只是单纯的数组偏移获得，其中保存的具体值是不清楚的。</li>
+<li>当映射关系不存在的时候，代码进入<code>else</code>分支。当alloc标志位置位的时候允许动态内存分配新页表。这里用了一个c语言的<code>||</code>技巧提高了代码执行的效率：就是当标志位为0时直接不会看后面的部分。如果分配成功就将新的pagetable首地址设置成新分配页的首地址，注意此时的pagetable已经对应了下一级的首地址。紧接着用<code>memset</code>函数将新分配的一页空间全部清零，然后<code>*pte = PA2PTE(pagetable) | PTE_V;</code> 非常值得注意，这里的pte指的是上一层的pagetable entry的地址，将下一层的pagetable首地址和相应标志位赋值给pte取地址后的那个存信息的页表项。 <strong>不管是赋值还是设置标志位都是针对上一层的pagetable</strong>,和下一层没有任何关系。 <strong>所以最后的return并不对最低层的页表项的内容负责，里面无论是何内容walk函数都无从得知</strong>。</li>
+</ol>
+<p>理解这个walk查找映射和分配映射的逻辑关系后，很容易发现：是否要申请新页表建立映射关系完全取决于虚拟地址的分布。最理想的情况就是整个虚拟地址到物理地址的映射只需要三个pagetable。什么时候需要多于三个的pagetable呢？ <strong>需要的页表多于512个时肯定是要增加页表的，同时虚拟地址不连续也会导致页表的增加，根据walk函数可以看出当最高层不一致的时候就需要额外分配两个页表，当最高层一致中间层不一致的时候需要额外分配一个页表，只有最底层不一致的时候就不需要额外分配页表了。</strong></p>
+<p>看懂了walk函数再来看<code>mappages()</code>函数就很清楚了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span><br><span class="hljs-title function_">mappages</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 va, uint64 size, uint64 pa, <span class="hljs-type">int</span> perm)</span><br>&#123;<br>  uint64 a, last;<br>  <span class="hljs-type">pte_t</span> *pte;<br><br>  <span class="hljs-keyword">if</span>((va % PGSIZE) != <span class="hljs-number">0</span>)<br>    panic(<span class="hljs-string">&quot;mappages: va not aligned&quot;</span>);<br><br>  <span class="hljs-keyword">if</span>((size % PGSIZE) != <span class="hljs-number">0</span>)<br>    panic(<span class="hljs-string">&quot;mappages: size not aligned&quot;</span>);<br><br>  <span class="hljs-keyword">if</span>(size == <span class="hljs-number">0</span>)<br>    panic(<span class="hljs-string">&quot;mappages: size not valid&quot;</span>);<br>  <br>  a = va;<br>  last = va + size - PGSIZE; <span class="hljs-comment">// last page head-address </span><br>  <span class="hljs-keyword">for</span>(;;)&#123;<br>    <span class="hljs-keyword">if</span>((pte = walk(pagetable, a, <span class="hljs-number">1</span>)) == <span class="hljs-number">0</span>) <span class="hljs-comment">// walk return a physical address to store every PTES</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    <span class="hljs-keyword">if</span>(*pte &amp; PTE_V)	<span class="hljs-comment">//only when the pte valid flag is not set (not mapped)</span><br>      panic(<span class="hljs-string">&quot;mappages: remap&quot;</span>);<br>    *pte = PA2PTE(pa) | perm | PTE_V;<br>    <span class="hljs-keyword">if</span>(a == last)<br>      <span class="hljs-keyword">break</span>;<br>    a += PGSIZE;<br>    pa += PGSIZE;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>除去前面的对参数的有效性判断核心代码就是这个循环，a代表第一个页表的首地址，last代表最后一个页表的 <strong>首地址</strong>。在调用walk函数获得一个虚拟地址对应的页表项之后，首先判断这个页表项的有效性(之前说到walk函数并不保证返回的页表项的有效性),检查无误后 <strong>将这个虚拟地址对应的物理地址按照合法格式放在这个虚拟地址对应的页表项中</strong>。之后RISC-V的MMU(memory management unit)将会根据这个映射关系自动处理虚拟地址。对于接下来的几页也按相同的方式进行处理，直到break发生。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/xv6-Operating-system/" class="category-chain-item">xv6-Operating system</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Unix-Linux/" class="print-no-link">#Unix/Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>xv6-lab-pgtbl</div>
+      <div>https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Damon</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年3月23日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/17/xv6-lab-syscall/" title="xv6-lab-syscall">
+                        <span class="hidden-mobile">xv6-lab-syscall</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","appKey":"YCK4Vdn4MiWd3L7wAUjUIj4k","path":"window.location.pathname","placeholder":"Typing somthing..","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://github.com/sycamoremoon" target="_blank" rel="nofollow noopener"><span>Damon</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        Totall 
+        <span id="leancloud-site-pv"></span>
+         views
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        Totall 
+        <span id="leancloud-site-uv"></span>
+         vistors
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
