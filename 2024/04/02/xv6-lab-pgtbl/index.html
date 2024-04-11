@@ -19,20 +19,20 @@
     <meta name="description" content="xv6-labs-pgtbl实验记录与分析写在前面: 这次实验花了我不少时间和精力，一方面是因为操作系统的页表机制有一定的难度，还有一方面就是自己犯傻.本次实验是独立完成，只通过官方的资料和源码获取相关的知识来修改内核。 题外话：我登录的课程网站是2020年的版本，但是做的实验版本是2023年的，虽然那课程内容都差不多但是实验内容却有很大的区别，所以我在开始一直很懵但是有没有看相关的解析，所以导致">
 <meta property="og:type" content="article">
 <meta property="og:title" content="xv6-lab-pgtbl">
-<meta property="og:url" content="https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/index.html">
+<meta property="og:url" content="https://sycamoremoon.github.io/2024/04/02/xv6-lab-pgtbl/index.html">
 <meta property="og:site_name" content="Recording Blog">
 <meta property="og:description" content="xv6-labs-pgtbl实验记录与分析写在前面: 这次实验花了我不少时间和精力，一方面是因为操作系统的页表机制有一定的难度，还有一方面就是自己犯傻.本次实验是独立完成，只通过官方的资料和源码获取相关的知识来修改内核。 题外话：我登录的课程网站是2020年的版本，但是做的实验版本是2023年的，虽然那课程内容都差不多但是实验内容却有很大的区别，所以我在开始一直很懵但是有没有看相关的解析，所以导致">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/single-levelpgtb.png">
-<meta property="og:image" content="https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/multi-levelpgtb.png">
-<meta property="og:image" content="https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/pte.png">
-<meta property="og:image" content="https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/succeed.png">
-<meta property="article:published_time" content="2024-03-23T13:48:57.000Z">
-<meta property="article:modified_time" content="2024-04-02T04:56:11.316Z">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/02/xv6-lab-pgtbl/single-levelpgtb.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/02/xv6-lab-pgtbl/multi-levelpgtb.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/02/xv6-lab-pgtbl/pte.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/02/xv6-lab-pgtbl/succeed.png">
+<meta property="article:published_time" content="2024-04-02T13:48:57.000Z">
+<meta property="article:modified_time" content="2024-04-11T02:09:28.201Z">
 <meta property="article:author" content="Damon">
 <meta property="article:tag" content="Unix&#x2F;Linux">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/single-levelpgtb.png">
+<meta name="twitter:image" content="https://sycamoremoon.github.io/2024/04/02/xv6-lab-pgtbl/single-levelpgtb.png">
   
   
   
@@ -242,8 +242,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-03-23 21:48" pubdate>
-          2024年3月23日 晚上
+        <time datetime="2024-04-02 21:48" pubdate>
+          2024年4月2日 晚上
         </time>
       </span>
     
@@ -319,9 +319,9 @@
 <hr>
 <h2 id="Pagetable"><a href="#Pagetable" class="headerlink" title="Pagetable"></a>Pagetable</h2><p>在学习这次课程的时候我已经不是第一次听说过页表了，页表本身的原理十分简单，无非就是一个虚拟地址到物理地址的映射，而这样的映射关系则由页表来提供。就像课程里面老师说的一样，页表是一个小而美的东西，逻辑并不复杂但是却能提供很强大的功能，比如提供各个进程之间的隔离机制，内核态与用户态之间的权限切换等.</p>
 <p>简单的虚拟地址只有一级页表，这一级页表中包括了所有能访问到的物理地址页。但是由于这样的结构太直接，导致了这唯一的一级页表显得十分庞大，如果给一个普通的进程分配这么大的页表会导致有些根本用不上的PTE(Page Table Entry)会浪费掉。如下图所示：如果用一个简单的一级页表在RISC-V的SV39结构下会导致每个进程都会分配到2^27 bytes的存储空间来存放这样一个大的页表，尽管绝大多部分都没有用上。</p>
-<p><img src="/2024/03/23/xv6-lab-pgtbl/single-levelpgtb.png" srcset="/img/loading.gif" lazyload alt="single-levelpgtb"></p>
+<p><img src="/2024/04/02/xv6-lab-pgtbl/single-levelpgtb.png" srcset="/img/loading.gif" lazyload alt="single-levelpgtb"></p>
 <p>于是为了能够节省空间，必然会牺牲一定的时间作为代价。多级页表就产生了，个人的观点下多级页表就是为了解决单级页表的空间分配太大所产生的。在页表查询过程中每一个中间级别的页表的PTE都包含了下一个级别的页表的物理地址信息。从而能够一级一级的索引到最末端的leafPTE,有点类似于链表的数据结构。使用页表的还有一点好处就是页表把一些离散的内存空间通过这样的映射关系映射成了一段逻辑上连续的内存空间。对于单个的进程来说，只要正确地设置好页表，用户进程根本不知道自己使用的内存空间是连续的还是离散的，甚至都不知道到底被放在了哪个位置。每个进程只能访问自己页表中有效部分的内容(也就是拥有自己独立的地址空间)，对于不属于自己页表的内容根本没有这样的映射关系，也就不可能会导致内存的非法访问。而内核也只是完成对页表自己空间分配和添加映射的工作，正常情况也没有办法能够访问用户进程的地址空间。所以用户进程和用户进程，用户进程和内核进程之间的隔离性就很好的由 <strong>以页表机制为基础的虚拟地址</strong>实现了。多级页表在SV39中的结构可由下图得知。</p>
-<p><img src="/2024/03/23/xv6-lab-pgtbl/multi-levelpgtb.png" srcset="/img/loading.gif" lazyload alt="multi-levelpgtb"></p>
+<p><img src="/2024/04/02/xv6-lab-pgtbl/multi-levelpgtb.png" srcset="/img/loading.gif" lazyload alt="multi-levelpgtb"></p>
 <p>值得注意的是：图中的satp是RISC-V中的一个专有的指向第一级页表的寄存器，当satp中不为0时，将由微处理器中的MMU(memory manage unit)自动进行对虚拟地址的转化。转化的依据就是satp所指向的第一级页表的首地址。整个流程就是上面的图所示。</p>
 <p>至于剩下的具体页表的映射关系，可以看<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.1810/2023/xv6/book-riscv-rev3.pdf">xv6-book</a>的chapter3中的3.2和3.6。书中说得非常清晰，我觉得最为重要的一点就是注意kernel的页表绝大多部分都是直接映射(direct mapping),除了trampoline和为每个进程分配的内核栈(kstacks),trampoline很特殊， <strong>它对应的物理页面是由所有的进程共同享有的，所有进程的页表中的TRAMPOLINE都映射到同一个物理页面，用来处理由用户态引发的Trap</strong>。Kstack则是用户进程陷入内核之后用于运行内核代码的栈，每个用户进程都有属于自己的内核栈，这样才能彼此互不干扰。用户进程的TRAPFRAME的映射关系也比较特殊，这个TRAPFRAME在用户进程页表的位置是固定好的，但是它所指向的物理页面却每个进程都不同。这样是为了方便在trap过程中将进程的重要状态信息保存在每个进程自己的trapframe中。 <strong>在保存的过程satp还是指向用户进程的页表，所以会将TRAMPFRAME映射到进程专属的trapframe。</strong></p>
 <h2 id="Core-Func"><a href="#Core-Func" class="headerlink" title="Core-Func"></a>Core-Func</h2><ol>
@@ -358,10 +358,10 @@
 <h2 id="Page-Access"><a href="#Page-Access" class="headerlink" title="Page-Access"></a>Page-Access</h2><p>这个练习虽然标的是hard，但是我并不觉得有什么难度。可能是已经一定程度理解了页表的机制。练习很贴心地把这个<code>pgaccess()</code>的配置工作给完成了。只需要写好系统调用<code>sys_pgaccess()</code>就可以了。先看代码：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//system call pgaccess.</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span> *base, <span class="hljs-type">int</span> len, <span class="hljs-type">void</span> *mask)</span>;<br><br><span class="hljs-comment">//Function body</span><br><span class="hljs-type">int</span><br><span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-comment">// lab pgtbl: your code here.</span><br>  uint64 vmstart;<br>  <span class="hljs-type">int</span> numofpg;<br>  uint64 vmmask;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> * <span class="hljs-title">p</span> =</span>myproc();<br>  argaddr(<span class="hljs-number">0</span>, &amp;vmstart);	<span class="hljs-comment">//get page&#x27;s vitual memory start</span><br>  argint(<span class="hljs-number">1</span>, &amp;numofpg);	<span class="hljs-comment">//get num of pages need to look up</span><br>  argaddr(<span class="hljs-number">2</span>, &amp;vmmask);	<span class="hljs-comment">//get the address for store the result</span><br>  uint32 mask =<span class="hljs-number">0</span>;<br>  numofpg = (numofpg &gt; <span class="hljs-number">32</span> ? <span class="hljs-number">32</span> : numofpg);<br>  <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; numofpg; i++)<br>  &#123;<br>	  <span class="hljs-type">pte_t</span> * pte = walk(p-&gt;pagetable,vmstart+PGSIZE*i,<span class="hljs-number">0</span>);	<span class="hljs-comment">//walk along with process&#x27;s pagetable,do not allocate new pagetable.</span><br>	  <span class="hljs-keyword">if</span>(*pte &amp; PTE_A)		<span class="hljs-comment">//Acess permission</span><br>	  &#123;<br>		  mask = mask | (<span class="hljs-number">1</span> &lt;&lt; i);<br>		  *pte = *pte &amp; ~PTE_A;<br>	  &#125;<br>  &#125;<br>  copyout(p-&gt;pagetable, vmmask, (<span class="hljs-type">char</span> *)&amp;mask, <span class="hljs-keyword">sizeof</span>(mask));<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>相信看见代码就很清楚了，不过还是大致讲解一下。<br>有一个我仔细考虑的地方是：<code>pgaccess()</code>的第三个参数的作用是传递一个数的地址，在处理完后将页表的状态信息存在相应的位上，如果第i页被Access就将数的第i位置为1。所以对于这个参数应该是用一个int接收还是一个指针接收不太确定。在RISC-V中的指针是一个64位的数据，所以应该用一个64位宽度的数据来存储它，确定了应该用<code>argaddr()</code> 而不是<code>argint()</code>，所以上面的<code>vmmask</code>实际上存放的是一个地址。</p>
-<p>然后for循环就是对所有的页表进行遍历，查询PTE_A位有没有被置1,如果有就将临时变量掩码<code>mask</code>的相应位置1并且重置PTE_A位。最后，就像提示中说的用<code>copyout()</code>函数将内核空间的mask变量复制到用户空间的<code>vmmask</code>指向的位置。至于PTE_A的定义是需要看RISC-V的Spec来确定的。<br><img src="/2024/03/23/xv6-lab-pgtbl/pte.png" srcset="/img/loading.gif" lazyload alt="pte_permission"></p>
+<p>然后for循环就是对所有的页表进行遍历，查询PTE_A位有没有被置1,如果有就将临时变量掩码<code>mask</code>的相应位置1并且重置PTE_A位。最后，就像提示中说的用<code>copyout()</code>函数将内核空间的mask变量复制到用户空间的<code>vmmask</code>指向的位置。至于PTE_A的定义是需要看RISC-V的Spec来确定的。<br><img src="/2024/04/02/xv6-lab-pgtbl/pte.png" srcset="/img/loading.gif" lazyload alt="pte_permission"></p>
 <hr>
 <p>至此pgtbl实验就完成了，最后不由得感叹人类的智慧如此伟大，在一个说白了就是一个存储器上经过逻辑抽象加上物理实现，完成了这么多样化而且十分丰富的数据结构，真正的不断逼近这块简单的DRAM的存储器的极限。这样的方法无疑是让人激动的，回想起自己学习开发整个页表的过程就发自内心的感到不可思议。这次实验确实花了很多时间精力，但是无疑是值得的。</p>
-<p>贴一个成功通过测试的图片纪念一下。<br><img src="/2024/03/23/xv6-lab-pgtbl/succeed.png" srcset="/img/loading.gif" lazyload alt="successfully_passed"></p>
+<p>贴一个成功通过测试的图片纪念一下。<br><img src="/2024/04/02/xv6-lab-pgtbl/succeed.png" srcset="/img/loading.gif" lazyload alt="successfully_passed"></p>
 <hr>
 <p><em><strong>写在最后</strong></em>：感谢能读到这里，希望没有浪费您宝贵的时间，如果觉得还不错，不要吝啬手中的赞呦~。</p>
 <blockquote>
@@ -415,7 +415,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>xv6-lab-pgtbl</div>
-      <div>https://sycamoremoon.github.io/2024/03/23/xv6-lab-pgtbl/</div>
+      <div>https://sycamoremoon.github.io/2024/04/02/xv6-lab-pgtbl/</div>
     </div>
     <div class="license-meta">
       
@@ -427,7 +427,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年3月23日</div>
+          <div>2024年4月2日</div>
         </div>
       
       

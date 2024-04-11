@@ -1,0 +1,788 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/browser.png">
+  <link rel="icon" href="/img/browser.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Damon">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="xv6-labs-trap实验记录与分析写在前面: 本次实验是关于从用户态陷入内核态的，关于这个部分呢不可避免需要汇编语言的知识。关于RISC-V汇编语言可以参考spec.正如提示中所说，本次实验的代码较少，但是需要思考的东西比较多，写出正确的代码也要非常仔细地考虑。   RISCV-assembly backtrace Alarm   RISCV-assembly关于calling-conven">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-lab-trap">
+<meta property="og:url" content="https://sycamoremoon.github.io/2024/04/10/xv6-lab-trap/index.html">
+<meta property="og:site_name" content="Recording Blog">
+<meta property="og:description" content="xv6-labs-trap实验记录与分析写在前面: 本次实验是关于从用户态陷入内核态的，关于这个部分呢不可避免需要汇编语言的知识。关于RISC-V汇编语言可以参考spec.正如提示中所说，本次实验的代码较少，但是需要思考的东西比较多，写出正确的代码也要非常仔细地考虑。   RISCV-assembly backtrace Alarm   RISCV-assembly关于calling-conven">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/10/xv6-lab-trap/violating_conv.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/10/xv6-lab-trap/stack.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/10/xv6-lab-trap/timer_trap.jpg">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/10/xv6-lab-trap/succeed.png">
+<meta property="article:published_time" content="2024-04-10T13:06:12.000Z">
+<meta property="article:modified_time" content="2024-04-11T07:30:14.599Z">
+<meta property="article:author" content="Damon">
+<meta property="article:tag" content="Unix&#x2F;Linux">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sycamoremoon.github.io/2024/04/10/xv6-lab-trap/violating_conv.png">
+  
+  
+  
+  <title>xv6-lab-trap - Recording Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"sycamoremoon.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","app_key":"YCK4Vdn4MiWd3L7wAUjUIj4k","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Damon</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/backgroud4.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="xv6-lab-trap"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-04-10 21:06" pubdate>
+          2024年4月10日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.6k 字
+        
+      </span>
+    
+
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">xv6-lab-trap</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="xv6-labs-trap实验记录与分析"><a href="#xv6-labs-trap实验记录与分析" class="headerlink" title="xv6-labs-trap实验记录与分析"></a>xv6-labs-trap实验记录与分析</h1><p><em><strong>写在前面</strong></em>: 本次实验是关于从用户态陷入内核态的，关于这个部分呢不可避免需要汇编语言的知识。关于RISC-V汇编语言可以参考<a target="_blank" rel="noopener" href="https://riscv.org/technical/specifications/">spec</a>.正如提示中所说，本次实验的代码较少，但是需要思考的东西比较多，写出正确的代码也要非常仔细地考虑。</p>
+<hr>
+<ul>
+<li><a href="#RISCV-assembly">RISCV-assembly</a></li>
+<li><a href="#backtrace">backtrace</a></li>
+<li><a href="#Alarm">Alarm</a></li>
+</ul>
+<hr>
+<h2 id="RISCV-assembly"><a href="#RISCV-assembly" class="headerlink" title="RISCV-assembly"></a>RISCV-assembly</h2><p>关于calling-convention官方给出的参考文献是<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2020/readings/riscv-calling.pdf">Call convertion</a>它描述了在进行C语言函数调用的时候各个参数之间是如何进行传递的，摘自上述的Specification。之后我又找到一个参考文献个人感觉比Spec更加通俗易懂，出自berkeley大学<a target="_blank" rel="noopener" href="https://inst.eecs.berkeley.edu/~cs61c/resources/RISCV_Calling_Convention.pdf">Understanding RISC-V Calling Convention</a>.</p>
+<p>其中关于s和t寄存器分别是被调用者保存(callee save)和调用者保存(caller save)。他们的区别大致是: callee save 在子程序调用完成返回时要保证该寄存器中存储的数据不会改变。caller save 是要在调用子程序之前将寄存器中的值提前存放好，子程序返回再恢复，因为子程序对该寄存器中的值没有任何保护的措施。关于为什么要区别这个，我问一位这方面专业的老师得到的答案是 <strong>硬件方面暂时没有区分这两类寄存器的区别,仅为了能让编译器能够编译出高效的代码</strong>。至于混用可能也不会暂时不会导致马上出错，但是为了规范还是要避免这种情况发生。<br><img src="/2024/04/10/xv6-lab-trap/violating_conv.png" srcset="/img/loading.gif" lazyload alt="violating_convention"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs asm">;一个简单的c语言程序调用。<br>int g(int x) &#123;<br>   0:	1141                	addi	sp,sp,-16<br>   2:	e422                	sd	s0,8(sp)<br>   4:	0800                	addi	s0,sp,16<br>  return x+3;<br>&#125;<br>   6:	250d                	addiw	a0,a0,3<br>   8:	6422                	ld	s0,8(sp)<br>   a:	0141                	addi	sp,sp,16<br>   c:	8082                	ret<br></code></pre></td></tr></table></figure>
+<p>这个简单的c语言程序较为完整的反映了calling convertion的过程。前两条指令是prologue,保存callee save寄存器。第5,6条指令是epilogue,恢复之前保存的寄存器。然后ret返回。但是有一个特别之处是这个程序没有调用其他的子程序，属于leaf,所以不需要保存ra寄存器.正常来说假如一个程序还调用了其他的子程序，则会在栈的最顶端保存ra，接下来一个位置保存s0(frame pointer)。现在这个情况属于是在栈的顶端保存的s0，ra不用保存，应该也是RISC-V的规范要求。</p>
+<p>第一条指令将sp减去16,是为了给接下来的程序腾出一段栈空间。因为栈的生长方向向下。所以在原来的sp至sp-16这段内存空间是给接下来的程序使用的。至于为什么只保存了一个寄存器还需要将sp移动16个字节，是因为RISC-V需要进行内存对齐，对齐的最小宽度就是16字节。</p>
+<p>一个更完整的有代表性的例子如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs asm">void<br>fprintf(int fd, const char *fmt, ...)<br>&#123;<br> 64a:	715d                	addi	sp,sp,-80<br> 64c:	ec06                	sd	ra,24(sp)<br> 64e:	e822                	sd	s0,16(sp)<br> 650:	1000                	addi	s0,sp,32<br> 652:	e010                	sd	a2,0(s0)<br> 654:	e414                	sd	a3,8(s0)<br> 656:	e818                	sd	a4,16(s0)<br> 658:	ec1c                	sd	a5,24(s0)<br> 65a:	03043023          	sd	a6,32(s0)<br> 65e:	03143423          	sd	a7,40(s0)<br>  va_list ap;<br><br>  va_start(ap, fmt);<br> 662:	fe843423          	sd	s0,-24(s0)<br>  vprintf(fd, fmt, ap);<br> 666:	8622                	mv	a2,s0<br> 668:	00000097          	auipc	ra,0x0<br> 66c:	e16080e7          	jalr	-490(ra) # 47e &lt;vprintf&gt;<br>&#125;<br> 670:	60e2                	ld	ra,24(sp)<br> 672:	6442                	ld	s0,16(sp)<br> 674:	6161                	addi	sp,sp,80<br> 676:	8082                	ret<br></code></pre></td></tr></table></figure>
+<p>接下来我觉得比较重要的一个点是关于<code>little-endian</code>和<code>big-endian</code>的区别。给定下面的代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> i = <span class="hljs-number">0x00646c72</span>;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;H%x Wo%s&quot;</span>, <span class="hljs-number">57616</span>, &amp;i);<br></code></pre></td></tr></table></figure>
+<p>由于计算机的最小存储单元是一个字节，所以当数据只占用一个字节宽度的时候这两种格式没有什么区别。但是当数据宽度大于一个字节，每个字节存放的顺序就有所区别了。注意到对于这个<code>unsigned int</code>格式的i变量，在printf的时候用打印字符串的格式打印，这个时候就体现了<code>little</code>和<code>big</code>的区别。RISC-V所用的<code>little-endian</code>是把最低位放在这一块数据的最前面，所以从i的地址开始首先看见的应该是<code>0x72</code>这个数据,最后才是<code>0x00</code>.如果是<code>big-endian</code>首先看见的就是<code>0x00</code>,最后才是<code>0x72</code>。</p>
+<h2 id="backtrace"><a href="#backtrace" class="headerlink" title="backtrace"></a>backtrace</h2><p>这个实验要求比较清晰，就是完成一个<code>backtrace()</code>函数，然后<code>sys_sleep()</code>对其进行调用即可。我在完成的时候遇到了几个问题. 当时以为挺容易的，后来还真的仔细思索才完成。</p>
+<ol>
+<li>首先需要明确的是，pc寄存器的内容虽然都是虚拟地址。但是内核存放程序的地方虚拟地址映射关系是直接映射，所以直接打印pc即可。</li>
+<li>为了回溯函数调用的情况，我们需要查询栈中的数据。而栈中的数据却是虚拟地址，陷入内核后每个进程都有一个内核栈被映射到一个高的虚拟地址。 <strong>所以fp是虚拟地址，它指向的下一级fp也是虚拟地址</strong>,我们在<code>backtrace()</code>中的操作完全是在一页大小的内核栈中进行的。完全不需要进行<code>walk()</code>这类的操作。</li>
+<li>在一个函数里面进行回溯的过程中, 从s0寄存器获得的frame pointer是指向caller 函数。其中含有的信息不包括当前正在执行的函数。</li>
+</ol>
+<p>由于在<code>backtrace()</code>之前的所有函数都必然不是一个leaf函数。所以栈的存储情况必然如下图所示。可以由此看出如果需要访问pc或者fp则需要进行适当的偏移。<br><img src="/2024/04/10/xv6-lab-trap/stack.png" srcset="/img/loading.gif" lazyload alt="stack"><br>最后附上代码如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//backtrace for debugging</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">backtrace</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-comment">// notice that r_fp() returns the value of the virtual address of sp</span><br>	<span class="hljs-comment">// in order to get stored pc and fp which needs to shift 8/16 bit.</span><br>	uint64 cur_fp = r_fp();<br>	uint64 pre_fp = *(uint64 *)(cur_fp - <span class="hljs-number">16</span>);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;backtrace:\n&quot;</span>);<br>	<span class="hljs-keyword">while</span>(pre_fp &lt;= PGROUNDUP(cur_fp) &amp;&amp; pre_fp &gt;= PGROUNDDOWN(cur_fp))<br>	&#123;<br>		<span class="hljs-comment">// print current stored pc</span><br>		<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%p\n&quot;</span>,*(uint64 *)(cur_fp - <span class="hljs-number">8</span>));<br>		cur_fp = pre_fp;<br>		pre_fp = *(uint64 *)(cur_fp - <span class="hljs-number">16</span>);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="Alarm"><a href="#Alarm" class="headerlink" title="Alarm"></a>Alarm</h2><p>这个实验的要求很细致，相当于一篇英文文章了。简单来说就是设置一个定时器中断函数，在每次定时器中断的时候就执行一次处于用户空间的函数。</p>
+<p>首先需要进行一些简单的配置,比如添加编译项，添加系统调用，修改头文件之类的事情等等。然后就是在系统调用<code>sys_sigalarm</code>中进行一些添加性的工作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Per-process state</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> &#123;</span><br>	<span class="hljs-comment">// ............................</span><br>	<span class="hljs-type">void</span> (*handler)();           <span class="hljs-comment">// Alarm handler </span><br>	<span class="hljs-type">int</span> ticks;                   <span class="hljs-comment">// The Totall Ticks period of call</span><br>	<span class="hljs-type">int</span> left_ticks;              <span class="hljs-comment">// When it count down to 0,call fn</span><br>	<span class="hljs-type">int</span> blocked;                 <span class="hljs-comment">// Blocked the device interupt</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c">uint64<br><span class="hljs-title function_">sys_sigalarm</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> * <span class="hljs-title">p</span> =</span> myproc();<br>	<span class="hljs-type">int</span> ticks = <span class="hljs-number">0</span>;<br>	uint64 handler = <span class="hljs-number">0</span>;<br>	argint(<span class="hljs-number">0</span>, &amp;ticks);<br>	argaddr(<span class="hljs-number">1</span>, &amp;handler);<br><br>	p-&gt;ticks = ticks;<br>	p-&gt;left_ticks = ticks;<br>	p-&gt;handler = (<span class="hljs-type">void</span>(*)())handler;<br><br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="test0"><a href="#test0" class="headerlink" title="test0"></a>test0</h3><p>实验指导很贴心的将这个任务分成了两部分来完成。test0就是进入定时器中断函数的时候能执行设置好的函数句柄. 想要完成这个任务会遇到的困难是用户代码使用的是用户页表，而中断函数处于一个使用内核页表的状态，肯定是不能直接执行。</p>
+<ul>
+<li>为了解决这个问题，我首先想到的就是在执行句柄函数之前切换一下页表，改成用户页表。但是毫无疑问是一个糟糕的方法，因为自从<code>satp</code>寄存器改变的那一瞬间开始，地址的映射关系就完全变化了。pc指向的地址映射关系已经变化了，那里已经不是原来的程序指令了，或者切换页表后pc指向的位置根本没有映射到物理页面。所以切换<code>satp</code>的时候要格外小心，<code>trampoline</code>就是为了解决这个问题，所以在每个页表中都映射到了一个相同的物理页面，所以这样即使切换页表，指令也可以继续执行。</li>
+<li>后来我又尝试在调用句柄函数之前将用户页表的PTEs给复制到内核页表中,然后等待执行完毕后再把用户页表的PTE从内核页表中擦除。这种方法确实可以在调用句柄函数的时候正常跳转。但是这相当与在内核执行用户的程序，对隔离性和安全性有着很大的威胁，还有一个问题很是致命：现在执行用户程序的时候是处于内核态，同时用户程序会不断地发出<code>system call</code>请求，这个时候<code>ecall</code>指令就不是跳转到<code>uservec</code>而是<code>kernelvec</code>了，会导致程序发生混乱。</li>
+<li>尝试这么久无果，我后来又仔细整理了一下整个usertrap的过程。发现要是想要让句柄函数能够成功在用户态执行，最好的方式就是直接更改<code>epc</code>寄存器，然后在执行<code>sret</code>的时候自动将<code>epc</code>复制到<code>pc</code>中。页表的切换也在<code>trampoline page</code>的<code>userret</code>函数中. 所以实际上只需要一行代码就可以搞定。 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">p-&gt;trapframe-&gt;epc = (uint64)p-&gt;handler;<br></code></pre></td></tr></table></figure></li>
+</ul>
+<p>最后解决了才发现这个答案原来如此straightforward.^_^</p>
+<h3 id="test1-2-3"><a href="#test1-2-3" class="headerlink" title="test1,2,3"></a>test1,2,3</h3><p>这三个test分别测试是否能够会恢复到被定时器中断的位置，是否能保证在执行句柄函数的时候不会被重入(re-entrant)，是否能在执行一个假<code>sigalarm()</code>之后仍然能够正确执行之后的程序。</p>
+<p>关于这个流程简易的trap流程如下图所示：<br><img src="/2024/04/10/xv6-lab-trap/timer_trap.jpg" srcset="/img/loading.gif" lazyload alt="timer_trap"></p>
+<ol>
+<li><p>想要恢复到被定时器中断的部分，就需要对之前的寄存器进行保存，通过<code>uservec</code>保存在<code>trapframe</code>的部分会随着定时器中断返回而对此没有任何保证。句柄函数可能会改变使用的寄存器，然后通过系统调用陷入内核从而刷新进程的<code>trapframe</code>。所以 <strong>必然需要另外一个存储空间来单独保存因为定时器中断时的进程状态信息</strong>。关于这个位置可以重新分配一个物理页面，但是我并不太想修改<code>allocproc()</code>函数，同时注意到原来的<code>trapframe</code>页面有很大一部分空间没有被利用。所以我选择直接存储在<code>trapframe</code>对应的物理页面上。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//store 1 / load 0 trapframe</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">timer_changestate</span><span class="hljs-params">(<span class="hljs-type">int</span> flag)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">trapframe</span> * <span class="hljs-title">timer_trapframe</span>;</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> * <span class="hljs-title">p</span> =</span> myproc();<br>	timer_trapframe = p-&gt;trapframe + <span class="hljs-number">1</span>;<br>	<span class="hljs-keyword">if</span>(flag == <span class="hljs-number">1</span>)	<span class="hljs-comment">//store trapframe into timer_trapframe</span><br>		memmove((<span class="hljs-type">void</span>*)timer_trapframe,(<span class="hljs-type">void</span>*)p-&gt;trapframe,<span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> trapframe));<br>	<span class="hljs-keyword">else</span>	<span class="hljs-comment">//load timer_trapframe into trapframe </span><br>		memmove((<span class="hljs-type">void</span>*)p-&gt;trapframe,(<span class="hljs-type">void</span>*)timer_trapframe,<span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> trapframe));<br>&#125;<br></code></pre></td></tr></table></figure></li>
+<li><p>关于如何防止句柄函数被重入也需要仔细考虑。首先中断标志位(SIE)的关闭是在用户陷入内核后硬件自动处理的，我们只需要考虑如何打开即可。中断标志位控制的是处理器对硬件中断信号是否能够陷入内核，对于<code>ecall</code>和<code>exception</code>没有影响。在未更改之前 <strong>每次从内核执行<code>usertrapret</code>都必然置位中断标志位</strong>, 查看<code>syscall</code>流程可以得知关于系统调用的整个流程涉及了两次中断的开启。<code>devintr</code>整个流程只涉及了一次中断的开启,只是中断返回导致。明白这一点后，就针对这个来选择性地置位中断标志位, 判断的标志就是进程结构体中新增的字段<code>blocked</code>(全局变量被初始化为0).</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">usertrap</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>		<span class="hljs-comment">// .................................</span><br>		<br>    <span class="hljs-comment">// an interrupt will change sepc, scause, and sstatus,</span><br>    <span class="hljs-comment">// so enable only now that we&#x27;re done with those registers.</span><br>		<span class="hljs-comment">// since we stored status , we enable interupt.</span><br>    <span class="hljs-keyword">if</span>(p-&gt;blocked == <span class="hljs-number">0</span>)intr_on();<br><br>    syscall();<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>((which_dev = devintr()) != <span class="hljs-number">0</span>)&#123;<br>		<span class="hljs-comment">// Device Interupt handled here.</span><br>		<span class="hljs-comment">// which_dev = 2 means timer interuprt</span><br>		<span class="hljs-keyword">if</span> (which_dev == <span class="hljs-number">2</span>)&#123;<br>			<span class="hljs-comment">// do timer handling here.</span><br>			<span class="hljs-keyword">if</span> (p-&gt;handler != <span class="hljs-number">0</span> || p-&gt;ticks != <span class="hljs-number">0</span>)&#123;<br>				<span class="hljs-keyword">if</span>(p-&gt;left_ticks-- == <span class="hljs-number">0</span>)&#123;<br>					timer_changestate(<span class="hljs-number">1</span>);<span class="hljs-comment">// store trapframe.</span><br>					p-&gt;trapframe-&gt;epc = (uint64)p-&gt;handler;<br>					p-&gt;left_ticks = p-&gt;ticks;<br>					p-&gt;blocked = <span class="hljs-number">1</span>;<br>				&#125;<br>			&#125;<br>		&#125;<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;usertrap(): unexpected scause %p pid=%d\n&quot;</span>, r_scause(), p-&gt;pid);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;            sepc=%p stval=%p\n&quot;</span>, r_sepc(), r_stval());<br>    setkilled(p);<br>  &#125;<br><br>	<span class="hljs-comment">// ....................................</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// return to user space</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">usertrapret</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-comment">// ...................................</span><br>		<br>  <span class="hljs-comment">// set up the registers that trampoline.S&#x27;s sret will use</span><br>  <span class="hljs-comment">// to get to user space.</span><br>  <br>  <span class="hljs-comment">// set S Previous Privilege mode to User.</span><br>  <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> x = r_sstatus();<br>  x &amp;= ~SSTATUS_SPP; <span class="hljs-comment">// clear SPP to 0 for user mode</span><br>	<span class="hljs-keyword">if</span>(p-&gt;blocked) x &amp;= ~SSTATUS_SPIE; <span class="hljs-comment">// disable interrupts in user mode. Preventint re-entrant into alarm func</span><br>	<span class="hljs-keyword">else</span> x |= SSTATUS_SPIE; <span class="hljs-comment">// enable interrupts in user mode</span><br>  w_sstatus(x);<br><br>	<span class="hljs-comment">// ...................................</span><br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>最后注意避免dummy函数句柄，要将对进程结构体的一切操作(恢复trapframe，释放blocked)建立在这个函数句柄有效的基础上，体现在先判断再处理。否则会导致test3 fail</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c">uint64<br><span class="hljs-title function_">sys_sigreturn</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> * <span class="hljs-title">p</span> =</span> myproc();<br>	<span class="hljs-keyword">if</span> (p-&gt;handler != <span class="hljs-number">0</span> || p-&gt;ticks != <span class="hljs-number">0</span>)&#123;<br>		timer_changestate(<span class="hljs-number">0</span>);<span class="hljs-comment">//load trapframe before excuting alarm function.</span><br>		p-&gt;blocked = <span class="hljs-number">0</span>;<br>	&#125;<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure></li>
+</ol>
+<p>到此为止这次实验的内容就完成了，还是贴一张图片纪念一下。<br><img src="/2024/04/10/xv6-lab-trap/succeed.png" srcset="/img/loading.gif" lazyload alt="succeed"></p>
+<hr>
+<p><em><strong>写在最后</strong></em>：感谢能读到这里，希望没有浪费您宝贵的时间，如果觉得还不错，不要吝啬手中的赞呦~。</p>
+<blockquote>
+<p>加以修改后的源代码放在了<a target="_blank" rel="noopener" href="https://github.com/sycamoremoon/xv6-labs-2023">sycamoremoon’s github</a>,需要的同学可以自取。</p>
+<p>之后还会有其他的内容上传，希望我的小小努力能够给大家带来帮助</p>
+<p>这是<a href="sycamoremoon.online">我的网站</a>，内容会随着时间逐渐丰富的..</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/xv6-Operating-system/" class="category-chain-item">xv6-Operating system</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Unix-Linux/" class="print-no-link">#Unix/Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>xv6-lab-trap</div>
+      <div>https://sycamoremoon.github.io/2024/04/10/xv6-lab-trap/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Damon</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年4月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/04/08/xv6-lab-pgtb-part2/" title="xv6-lab-pgtb-part2">
+                        <span class="hidden-mobile">xv6-lab-pgtb-part2</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","appKey":"YCK4Vdn4MiWd3L7wAUjUIj4k","path":"window.location.pathname","placeholder":"Typing somthing..","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://github.com/sycamoremoon" target="_blank" rel="nofollow noopener"><span>Damon</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        Totall 
+        <span id="leancloud-site-pv"></span>
+         views
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        Totall 
+        <span id="leancloud-site-uv"></span>
+         vistors
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
