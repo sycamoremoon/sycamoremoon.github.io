@@ -255,6 +255,67 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/04/18/xv6-lab-COW/" target="_self">
+          xv6-lab-COW
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/04/18/xv6-lab-COW/" target="_self">
+        <div>
+          xv6-lab-COW 实验记录与分析写在前面: 本次实验花费了超出我预期很多的时间来完成。分析原因是在测试的时候出现了大大小小很多问题，其中最关键的问题就是 Lost Pages, 刚开始我一直以为是我在哪里忘记kfree()回收了，但是后来看了对应的Lecture才发现是缺少自旋锁, 发生了 竞争条件(race condition) 。此外这次记录文字比较密集请见谅。   Copy-On-Wr
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-04-18 13:44" pubdate>
+              2024-04-18
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/xv6-Operating-system/" class="category-chain-item">xv6-Operating system</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Unix-Linux/">#Unix/Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/04/15/xv6-lab-lazy/" target="_self">
           xv6-lab-lazy
         </a>
@@ -791,67 +852,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/%E7%94%B5%E8%B7%AF%E8%AE%BE%E8%AE%A1/">#电路设计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2023/12/04/LCD1602/" target="_self">
-          LCD1602-driver
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2023/12/04/LCD1602/" target="_self">
-        <div>
-          手把手教你写LCD1602驱动代码写在前面：本文是本人某种意义上写的第一篇blog，如有错误请留言指正。具体内容以官方手册内容为准[1]。  首先我们要知道LCD1602屏幕驱动的背后也是有一块类似显卡的芯片HD44780U在作为驱动，当然这块上世纪的芯片当然不能和最新的4090相比，它的显存只有可怜的80bytes，但是这对于很多应用场景来说已经够用了，这也是这块芯片能够经久不衰的原因。此处附上
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2023-12-04 10:18" pubdate>
-              2023-12-04
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%A1%AC%E4%BB%B6%E5%BC%80%E5%8F%91/" class="category-chain-item">硬件开发</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%A4%96%E8%AE%BE%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/">#外设驱动开发</a>
             
           </div>
         
