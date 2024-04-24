@@ -23,8 +23,9 @@
 <meta property="og:site_name" content="Recording Blog">
 <meta property="og:description" content="xv6-lab-thread 实验记录与分析写在前面: 这次实验花费的时间远远高于我的预期以及官网上标注的难度(三个moderate).主要原因是在后面两个实验中查询的资料和最后一个barrier实验比较麻烦。由于数据结构的部分只是简单自学的，所以在做这个实验中还复习了散列表的一些知识, 也仔细阅读了”APUE”的关于本次实验关于线程的相关章节。   uthread pthread-using h">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://sycamoremoon.github.io/multi-lock1.png">
-<meta property="og:image" content="https://sycamoremoon.github.io/multi-lock2.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/multi_lock1.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/multi_lock2.png">
+<meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/multi_lock3.png">
 <meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/test_pthread.png">
 <meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/cond_recheck.png">
 <meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/debug_source.png">
@@ -32,11 +33,11 @@
 <meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/debug_4thread.png">
 <meta property="og:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/succeed.png">
 <meta property="article:published_time" content="2024-04-23T11:50:44.000Z">
-<meta property="article:modified_time" content="2024-04-24T09:05:04.976Z">
+<meta property="article:modified_time" content="2024-04-24T15:50:22.357Z">
 <meta property="article:author" content="Damon">
 <meta property="article:tag" content="Unix&#x2F;Linux">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://sycamoremoon.github.io/multi-lock1.png">
+<meta name="twitter:image" content="https://sycamoremoon.github.io/2024/04/23/xv6-lab-thread/multi_lock1.png">
   
   
   
@@ -340,7 +341,7 @@
 <h2 id="multi-thread"><a href="#multi-thread" class="headerlink" title="multi-thread"></a>multi-thread</h2><p>多线程编程一个重要的问题就是如何对各个线程之间进行同步，要保证在多个线程共享一个相同的内存时，维持数据的一致性。当且仅当多个线程共享一个内存区域的时候至少一个线程对该内存区域修改才会产生上述的一致性问题，有时候称为竞争条件(race condition)。</p>
 <p>为了解决这个同步的问题，有比较多种解决方法。使用互斥量(锁)就是其中一种，当然不一定是最好的，不过不叫主流和容易理解。下一个实验<code>barrier</code>使用的信号量和条件变量也是基于互斥量实现的。</p>
 <p>在什么条件下使用锁？上述说到的情况是一定需要用的，如果需要更加严格的执行顺序，可以扩大锁的范围。值得注意的是：在上述存在竞争条件的情况下，即使是读取也要用锁来保护，因为普通的读取不是原子操作，很有可能在不加入锁的情况下在读到一半数据就被更改，造成明明是读取一个变量，得到的结果却和此刻该变量的值不一样。我忽略过这一点，造成了一些问题。</p>
-<p>在使用锁的过程中，最容易发生也是最严重的问题就是发生<code>deadlock</code>死锁。用一把锁的时候死锁比较容易发现。但是如果使用多把锁，就变得难以发现和调试了。APUE中有着对使用多把锁的参考案例在图11-11，我对其进行了阅读和相应的理解，虽然本次实验不会用到多把锁。<br><img src="/multi-lock1.png" srcset="/img/loading.gif" lazyload alt="multi-lock"><br><img src="/multi-lock2.png" srcset="/img/loading.gif" lazyload alt="multi-lock"></p>
+<p>在使用锁的过程中，最容易发生也是最严重的问题就是发生<code>deadlock</code>死锁。用一把锁的时候死锁比较容易发现。但是如果使用多把锁，就变得难以发现和调试了。APUE中有着对使用多把锁的参考案例在图11-11，我对其进行了阅读和相应的理解，虽然本次实验不会用到多把锁。<br><img src="/2024/04/23/xv6-lab-thread/multi_lock1.png" srcset="/img/loading.gif" lazyload alt="multi-lock"><br><img src="/2024/04/23/xv6-lab-thread/multi_lock2.png" srcset="/img/loading.gif" lazyload alt="multi-lock"><br><img src="/2024/04/23/xv6-lab-thread/multi_lock3.png" srcset="/img/loading.gif" lazyload alt="multi-lock"></p>
 <p>有兴趣的同学可以自己阅读，我在这里只是想记录一下我觉得最为关键的部分：锁保护着不变量(invariant),在这里<code>hashlock</code>保护的是全局变量<code>fh</code>和散列链字段<code>f_next</code>, <code>fp-&gt;lock</code>保护的是一个结构体中其他字段(因为有可能多个线程同时需要访问某一个结构体)。<code>foo_rele()</code>函数主要是用来释放对数据对象的引用，这时候会出现两种情况</p>
 <ul>
 <li>一个线程当进入<code>foo_rele()</code>函数后发现除了自己还有其他线程在引用同一个数据对象即<code>f_count &gt; 1</code>。那么这个线程要做的事情只用对当前这个结构体的<code>f_count</code>进行写入操作, 由于不涉及对全局的散列表<code>fh</code>以及链表进行操作，所以很愉快的只申请了一个<code>fp-lock</code>然后改完<code>f_count</code>就将锁释放后返回。不用对<code>hashlock</code>做任何操作，因为这个过程不涉及它保护的invariant.</li>
