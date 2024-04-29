@@ -1,0 +1,757 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/browser.png">
+  <link rel="icon" href="/img/browser.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Damon">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="xv6-lab-lock 实验记录与分析写在前面: 这次关于使用lock的实验是关于多个进程之间通信的同步问题，在编写代码之前需要仔细地思考。特别是关于使用锁的顺序，中断是否开启之类的问题要格外注意。   kalloctest code   buffer-cache   kalloctest 在阅读这个实验的介绍时我感觉十分懵，原文说 **kalloctest prints (as “#fetch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-lab-lock">
+<meta property="og:url" content="https://sycamoremoon.github.io/2024/04/28/xv6-lab-lock/index.html">
+<meta property="og:site_name" content="Recording Blog">
+<meta property="og:description" content="xv6-lab-lock 实验记录与分析写在前面: 这次关于使用lock的实验是关于多个进程之间通信的同步问题，在编写代码之前需要仔细地思考。特别是关于使用锁的顺序，中断是否开启之类的问题要格外注意。   kalloctest code   buffer-cache   kalloctest 在阅读这个实验的介绍时我感觉十分懵，原文说 **kalloctest prints (as “#fetch">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-04-28T13:22:08.000Z">
+<meta property="article:modified_time" content="2024-04-29T00:46:07.783Z">
+<meta property="article:author" content="Damon">
+<meta property="article:tag" content="Unix&#x2F;Linux">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>xv6-lab-lock - Recording Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"sycamoremoon.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","app_key":"YCK4Vdn4MiWd3L7wAUjUIj4k","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Damon</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/backgroud4.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="xv6-lab-lock"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-04-28 21:22" pubdate>
+          2024年4月28日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.3k 字
+        
+      </span>
+    
+
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">xv6-lab-lock</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="xv6-lab-lock-实验记录与分析"><a href="#xv6-lab-lock-实验记录与分析" class="headerlink" title="xv6-lab-lock 实验记录与分析"></a>xv6-lab-lock 实验记录与分析</h1><p><em><strong>写在前面</strong></em>: 这次关于使用lock的实验是关于多个进程之间通信的同步问题，在编写代码之前需要仔细地思考。特别是关于使用锁的顺序，中断是否开启之类的问题要格外注意。</p>
+<hr>
+<ul>
+<li><a href="#kalloctest">kalloctest</a><ul>
+<li><a href="#code">code</a></li>
+</ul>
+</li>
+<li><a href="#buffer-cache">buffer-cache</a></li>
+</ul>
+<hr>
+<h1 id="kalloctest"><a href="#kalloctest" class="headerlink" title="kalloctest"></a>kalloctest</h1><blockquote>
+<p>在阅读这个实验的介绍时我感觉十分懵，原文说 **kalloctest prints (as “#fetch-and-add”) the number of loop iterations in acquire due to attempts to acquire a lock that another core already holds, for the kmem lock and a few other locks.**，我看了好久的这个实验介绍，同时也照着<code>kalloctest</code>的源码试着理解了这个测试的对象和测试原理。</p>
+<p>在源码中我没有找到其中关于<code>fetch-and-add</code>部分的输出是哪来的，后来顺着执行步骤一步一步看，发现打印输出是一个<code>statistics()</code>函数来完成的，而这个函数本质上是读取一个名为<code>statistics</code>的文件，在xv6中使用ls命令后确实能找到这样的文件，但是它的文件类型为3,意思是<code>statistics</code>是一个设备文件，和<code>console</code>一样。经过一顿查找和跳转，终于是搞懂了这个信息是如何能打印出来的了：在xv6中将对所有文件的读取都用<code>read()</code>操作来实现，然后<code>read</code>再根据文件的不同类型来调用能具体实现的函数。在上述读取<code>statistics</code>设备的时候<code>read</code>被定向到了<code>statsread()</code>(stats.c) -&gt; <code>statslock()</code>(spinlock.c)。所以实际上也是通过将数据拷贝到用户进程的缓存区再通过<code>printf()</code>把数据通过串口打印出来。我也通过这个过程才初步理解了Unix中将一切视作文件的底层实现。</p>
+<p>之前没有看见测试原理，对打印的一大堆东西都不太清楚，还是看见源码之后才能完全弄懂。本次lab测试的原理大概就是通过在<code>acquire()</code>函数获取锁的时候记录两个数据，首先是进入<code>acquire()</code>函数的次数，然后是在尝试获取锁, 但是锁实际上已经被拿走之后不断spin的次数。spin次数大致能反映了同一个锁被竞争的激烈程度，最后会统计竞争最激烈的Top5个锁。对于锁的分辨是通过在初始化的时候给<code>spinlock</code>的name字段赋值来的，所以要求中也强调在给每个锁定义名称的时候要以<code>kmem</code>开头。</p>
+</blockquote>
+<p>在解决了基本的读题障碍之后，就可以开始了。基本思路正如提升中所说，要给每一个CPU分配一个空闲内存的链表，这样每个CPU在进行内存动态分配的时候只使用自己的链表，会很大程度减少自旋锁之间的竞争问题。明显有一个需要解决的问题：当一个CPU已经没有空闲页面但是其他CPU还有的时候要从其他CPU<code>steal</code>部分空闲页面。</p>
+<p>其实在做这个实验的时候我遇到两个最为主要的问题，一个就是如何从其他CPU<code>steal</code>内存。另一个是关于中断的开启与关闭问题。</p>
+<ul>
+<li>我关于<code>steal</code>部分的想法是，每次一个CPU没有内存的时候都会向还有空闲内存的CPU拿取一半的内存，每次都拿一半，这样我直观感受会比每次只拿一页稍微减少一点额外的<code>steal</code>开销，没有严格的数学计算，只是猜测。但是就是因为这个想法，让我调试了很久。因为在两个链表之间截取数据很容易出错，考虑用<code>r</code>还是<code>r-&gt;next</code>要十分仔细。空闲页面的奇偶性，应该拿取空闲链表的前半还是后半等等问题都让我考虑了很久。</li>
+<li>在提示中有说到在调用<code>cpuid()</code>获取当前CPU号的时候要关闭中断，所以我之前简单地<code>push_off()-&gt;cpuid()-&gt;pop_off()</code>，实际上这样关闭中断是不够的。关闭中断主要是为了防止进程获取cpuid的后不被定时器中断而被调度到其他cpu上执行,否则就会产生CPU0对CPU1的链表进行操作的情况，这样显然是不对的。</li>
+<li>最后曾经有一个比较疑惑的点：在直接启动xv6默认是用三个CPU核心，但是我们代码中的最大CPU数是8个。获取cpu号的方法是通过读取<code>tp</code>寄存器，没有机会在第4个寄存器上读取<code>tp</code>寄存器，所以虽然有8个<code>struct cpu</code>结构体但实际上却只用三个。</li>
+</ul>
+<h2 id="code"><a href="#code" class="headerlink" title="code"></a>code</h2><p>为了能实现上述说的分配一半的页面，我在<code>kmem</code>结构体新增了一个字段用于记录剩余的空闲页面<code>freecount</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kmem</span>&#123;</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> <span class="hljs-title">lock</span>;</span><br>  <span class="hljs-type">int</span> freecount;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">run</span> *<span class="hljs-title">freelist</span>;</span><br>&#125;;<br><br><span class="hljs-comment">// lock order: the least num hold lock first</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kmem</span> <span class="hljs-title">kmem</span>[<span class="hljs-title">NCPU</span>];</span><br></code></pre></td></tr></table></figure>
+
+<p><code>kfree()</code>函数变化不大，主要是注意中断的关闭和对<code>freecount</code>更新。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">kfree</span><span class="hljs-params">(<span class="hljs-type">void</span> *pa)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">run</span> *<span class="hljs-title">r</span>;</span><br><br>  <span class="hljs-keyword">if</span>(((uint64)pa % PGSIZE) != <span class="hljs-number">0</span> || (<span class="hljs-type">char</span>*)pa &lt; end || (uint64)pa &gt;= PHYSTOP)<br>    panic(<span class="hljs-string">&quot;kfree&quot;</span>);<br><br>  <span class="hljs-comment">// Fill with junk to catch dangling refs.</span><br>  <span class="hljs-built_in">memset</span>(pa, <span class="hljs-number">1</span>, PGSIZE);<br><br>  r = (<span class="hljs-keyword">struct</span> run*)pa;<br><br>  <span class="hljs-comment">// Safe for disable interupt</span><br>  push_off();<br>  <span class="hljs-type">int</span> id = cpuid();<br><br>  acquire(&amp;kmem[id].lock);<br>  r-&gt;next = kmem[id].freelist;<br>  kmem[id].freelist = r;<br>  kmem[id].freecount++;<br>  release(&amp;kmem[id].lock);<br><br>  pop_off();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后是关键的<code>kalloc()</code>，这个函数涉及到对页面的<code>steal</code>，所以我单独写了一个<code>steal()</code>函数用于被调用。关于在执行<code>steal()</code>函数期间会同时操作两个链表和<code>freecount</code>，所以毫无疑问是需要同时获取两把锁的，但是对于这 **两把锁的获取顺序是否有要求我还是保守地按照一定的顺序(cpu号小的先获取)**，尽可能避免<code>deadlock</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> *<br><span class="hljs-title function_">kalloc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">run</span> *<span class="hljs-title">r</span>;</span><br>  push_off();<br>  <span class="hljs-type">int</span> id = cpuid();<br><br>  acquire(&amp;kmem[id].lock);<br>  r = kmem[id].freelist;<br>  <span class="hljs-keyword">if</span>(r == <span class="hljs-number">0</span>)  <span class="hljs-comment">// empty for this freelist</span><br>    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> n = <span class="hljs-number">0</span>; n &lt; NCPU; n++)&#123;<br>      <span class="hljs-keyword">if</span>(n == id) <span class="hljs-keyword">continue</span>;<br>      <span class="hljs-keyword">if</span>(steal(id,n)==<span class="hljs-number">0</span>)&#123;<br>        <span class="hljs-comment">// steal succeed</span><br>        r = kmem[id].freelist;<br>        <span class="hljs-keyword">break</span>;<br>      &#125;<br>    &#125;<br>  <br>  <span class="hljs-keyword">if</span>(r)&#123;<br>    kmem[id].freelist = r-&gt;next;<br>    kmem[id].freecount --;<br>  &#125;<br>  release(&amp;kmem[id].lock);<br><br>  pop_off();<br>  <span class="hljs-keyword">if</span>(r)<br>    <span class="hljs-built_in">memset</span>((<span class="hljs-type">char</span>*)r, <span class="hljs-number">5</span>, PGSIZE); <span class="hljs-comment">// fill with junk</span><br>  <span class="hljs-keyword">return</span> (<span class="hljs-type">void</span>*)r;<br>&#125;<br><br><span class="hljs-comment">// return 0 when succeed, return -1 when the other CPU also empty.</span><br>uint64<br><span class="hljs-title function_">steal</span><span class="hljs-params">(<span class="hljs-type">int</span> takemem, <span class="hljs-type">int</span> givemem)</span><br>&#123;<br>  <span class="hljs-comment">// CPU which take mem must hold lock.</span><br>  <span class="hljs-comment">// and in this func must hold lock of CPU which give mem.</span><br>  <span class="hljs-comment">// consider locking order in case of deadlock.</span><br>  <br>  <span class="hljs-keyword">if</span>(!holding(&amp;kmem[takemem].lock))<br>    panic(<span class="hljs-string">&quot;steal lock&quot;</span>);<br><br>  <span class="hljs-keyword">if</span>(takemem &lt; givemem)<br>    acquire(&amp;kmem[givemem].lock);<br>  <span class="hljs-keyword">else</span>&#123;<br>    release(&amp;kmem[takemem].lock);<br>    acquire(&amp;kmem[givemem].lock);<br>    acquire(&amp;kmem[takemem].lock);<br>  &#125;<br><br>  <span class="hljs-keyword">if</span>(kmem[takemem].freecount != <span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;takemem:%d\n&quot;</span>,kmem[takemem].freecount);<br>    panic(<span class="hljs-string">&quot;steal:takemem&quot;</span>);<br>  &#125;<br>  <span class="hljs-keyword">if</span>(kmem[takemem].freelist != <span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;takelist:%p\n&quot;</span>,kmem[takemem].freelist);<br>    panic(<span class="hljs-string">&quot;steal:takelist&quot;</span>);<br>  &#125;<br>  <span class="hljs-keyword">if</span>(kmem[givemem].freelist == <span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-keyword">if</span>(takemem &lt; givemem)<br>      release(&amp;kmem[givemem].lock);<br>    <span class="hljs-keyword">else</span>&#123;<br>      release(&amp;kmem[takemem].lock);<br>      release(&amp;kmem[givemem].lock);<br>      acquire(&amp;kmem[takemem].lock);<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  &#125;<br><br>  <span class="hljs-type">int</span> stl = (<span class="hljs-type">int</span>)((kmem[givemem].freecount+<span class="hljs-number">1</span>)/ <span class="hljs-number">2</span>);<br><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">run</span> * <span class="hljs-title">r</span> =</span> kmem[givemem].freelist;<br>  <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> c = <span class="hljs-number">0</span>; c &lt; stl<span class="hljs-number">-1</span>; c++)&#123;<br>    <span class="hljs-keyword">if</span>(r==<span class="hljs-number">0</span>)&#123;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;round:%d,cpu:%d freecount:%d\n&quot;</span>,c, givemem,kmem[givemem].freecount);<br>      panic(<span class="hljs-string">&quot;steal r==0&quot;</span>);<br>    &#125;<br>    r = r-&gt;next;<br>  &#125;<br>  kmem[takemem].freelist = kmem[givemem].freelist;<br>  kmem[givemem].freelist = r-&gt;next;<br>  r-&gt;next = <span class="hljs-number">0</span> ;<br>  kmem[takemem].freecount += stl;<br>  kmem[givemem].freecount -= stl;<br><br>  <span class="hljs-keyword">if</span>(takemem &lt; givemem)<br>    release(&amp;kmem[givemem].lock);<br>  <span class="hljs-keyword">else</span>&#123;<br>    release(&amp;kmem[takemem].lock);<br>    release(&amp;kmem[givemem].lock);<br>    acquire(&amp;kmem[takemem].lock);<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/xv6-Operating-system/" class="category-chain-item">xv6-Operating system</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Unix-Linux/" class="print-no-link">#Unix/Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>xv6-lab-lock</div>
+      <div>https://sycamoremoon.github.io/2024/04/28/xv6-lab-lock/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Damon</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年4月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/04/28/2024%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%9B%A2%E5%BB%BA/" title="2024第一次团建">
+                        <span class="hidden-mobile">2024第一次团建</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"pEsKTQ8VP9RovtWkjRgB9Np2-gzGzoHsz","appKey":"YCK4Vdn4MiWd3L7wAUjUIj4k","path":"window.location.pathname","placeholder":"Typing somthing..","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://github.com/sycamoremoon" target="_blank" rel="nofollow noopener"><span>Damon</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        Totall 
+        <span id="leancloud-site-pv"></span>
+         views
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        Totall 
+        <span id="leancloud-site-uv"></span>
+         vistors
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
